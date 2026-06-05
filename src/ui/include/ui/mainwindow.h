@@ -1,5 +1,6 @@
 #pragma once
 #include <QMainWindow>
+#include <QHash>
 #include "app/app_context.h"
 
 class QLineEdit;
@@ -8,12 +9,14 @@ class QTreeView;
 
 namespace stickynotes::ui {
 class NoteEditor;
+class StickyWindow;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
     explicit MainWindow(app::AppContext& ctx, QWidget* parent = nullptr);
     void showAndRaise();
+    void openStickyWindow(const QString& noteId);
 public slots:
     void onNoteSelected(const QString& id);
 private:
@@ -29,5 +32,6 @@ private:
     NoteEditor* editor_ = nullptr;
     QString currentCategoryId_ = "inbox";
     QString currentNoteId_;
+    QHash<QString, StickyWindow*> stickyByNote_;
 };
 }

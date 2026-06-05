@@ -1,5 +1,6 @@
 #include "ui/mainwindow.h"
 #include "ui/note_editor.h"
+#include "ui/stickywindow.h"
 #include "core/note.h"
 #include "core/category.h"
 #include <QSplitter>
@@ -117,5 +118,26 @@ void MainWindow::showAndRaise() {
     show();
     raise();
     activateWindow();
+}
+
+void MainWindow::openStickyWindow(const QString& id) {
+    if (stickyByNote_.contains(id)) {
+        stickyByNote_[id]->raise();
+        stickyByNote_[id]->activateWindow();
+        return;
+    }
+    
+    auto n = ctx_.notes->get(id);
+    if (!n) return;
+    
+    auto* w = new StickyWindow(ctx_, *n);
+    stickyByNote_.insert(id, w);
+    
+    if (!ctx_.notes->acquire(id)) {
+        w->findChild<NoteEditor*>()->setMode(NoteEditor::Mode::ReadOnly);
+    }
+    
+    w->setAttribute(Qt::WA_DeleteOnClose, false);
+    w->show();
 }
 }
