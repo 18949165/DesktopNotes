@@ -1,7 +1,8 @@
 include(GoogleTest)
 
 add_executable(core_tests
-    note_serialize_test.cpp)
+    note_serialize_test.cpp
+    markdown_codec_test.cpp)
 target_link_libraries(core_tests
     PRIVATE
         core
