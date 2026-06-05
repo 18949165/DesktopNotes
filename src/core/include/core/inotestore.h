@@ -1,15 +1,17 @@
 #pragma once
-#include <QObject>
 #include <QList>
+#include <functional>
 #include <optional>
 #include "core/note.h"
 #include "core/category.h"
 
 namespace stickynotes::core {
-class INoteStore : public QObject {
-    Q_OBJECT
+class INoteStore {
 public:
-    virtual ~INoteStore() override = default;
+    using NoteChangedCb = std::function<void(const QString&)>;
+    using CategoryChangedCb = std::function<void(const QString&)>;
+
+    virtual ~INoteStore() = default;
     virtual QList<Note> all() const = 0;
     virtual std::optional<Note> get(const QString& id) const = 0;
     virtual Note create(const QString& categoryId) = 0;
@@ -26,8 +28,8 @@ public:
     virtual bool acquire(const QString& id) = 0;
     virtual void release(const QString& id) = 0;
     virtual bool isWritable(const QString& id) const = 0;
-signals:
-    void noteChanged(QString id);
-    void categoryChanged(QString id);
+    // 回调注册（M1.3 教训：接口不含 Q_OBJECT，signals 用 std::function）
+    virtual void setNoteChangedCallback(NoteChangedCb cb) = 0;
+    virtual void setCategoryChangedCallback(CategoryChangedCb cb) = 0;
 };
 }
