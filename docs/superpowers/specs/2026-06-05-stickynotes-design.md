@@ -71,7 +71,6 @@
   - 右键菜单：新建便签 / 打开主窗口 / 设置 / 退出
 - 全局快捷键：v1 **只 1 个**，默认 `Ctrl+Alt+N` 新建便签；可在设置页修改；底层用 Win32 `RegisterHotKey`（仅 Windows）
 - 通知：到期用 `QSystemTrayIcon::showMessage`（Windows Toast）
-- 开机自启：**v1 不做**（用户决策，避免修改注册表）
 
 ### 3.4 同步模型（关键设计）
 - 语义前提：**一个小窗 = 一份新 `Note`**。每次"新建便签"都生成新 `id`，N 个小窗 = N 份独立笔记（满足 S2 互不干扰）。
@@ -82,6 +81,7 @@
   - `NoteEditor` 接受 `Mode { ReadOnly, ReadWrite }`；工具条在只读时整体禁用，状态栏显示"只读"角标
   - 主窗口与小窗都遵循同一规则：谁先获得写权限谁写，另一个切到只读
   - 列表项 / 标题 / 分类等只读字段不参与锁
+- 回调替代 Qt signals：**M1.3 / M2.3 实操发现**——抽象接口含 `Q_OBJECT` + `signals:` 与 `gmock` moc 在 MSVC + Qt 6.7 联合下会触发 LNK2001（找不到 `qt_metacast` / 嵌套 Spec 推断失败）。**已重设计**为 `std::function` 回调注册（`setTriggeredCallback` / `setLeftClickCallback` / `setNoteChangedCallback` / `setCategoryChangedCallback`）。实现类（如 `FileNoteStore`、`Hotkey_Win`）保留此能力，调用方按需注册。
 - 测试要求：`INoteStore` 的 acquire/release 引用计数与可写性必须有 GoogleTest 覆盖
 
 ### 3.5 提醒调度
@@ -248,28 +248,35 @@ public:
 
 ```cpp
 // core/inotestore.h
-// 注意：signals 出现在纯虚接口里，需要该接口类本身派生自 QObject 并带 Q_OBJECT；
-// 实现类（FileNoteStore）再 emit 这些信号。
-// 视图锁：acquire/release 引用计数，详见 §3.4 同步模型。
-class INoteStore : public QObject {
-    Q_OBJECT
+// 同步模型说明：抽象接口本身不含 Q_OBJECT，事件通过 std::function 回调
+// 传递（详见 §3.4 末尾"回调替代 Qt signals"段落）。INoteStore 保留纯虚
+// acquire/release/isWritable 三个视图锁原语 + setNoteChangedCallback /
+// setCategoryChangedCallback 回调注册方法。
+class INoteStore {
 public:
+    using NoteChangedCb = std::function<void(const QString&)>;
+    using CategoryChangedCb = std::function<void(const QString&)>;
+
     virtual ~INoteStore() = default;
     virtual QList<Note> all() const = 0;
     virtual std::optional<Note> get(const QString& id) const = 0;
-    virtual Note create(QString categoryId) = 0;
+    virtual Note create(const QString& categoryId) = 0;
     virtual void upsert(const Note& n) = 0;
     virtual bool remove(const QString& id) = 0;
     virtual QList<Note> query(const QString& keyword,
                               const QString& categoryId = {}) const = 0;
-    // 视图写权限：同一 id 被多处视图同时打开时互斥；详见 §3.4
-    // 返回 true 表示获得写权限；返回 false 表示当前已有其它视图持有写权限
+    virtual QList<Category> categories() const = 0;
+    virtual Category createCategory(const QString& name,
+                                   const QString& color = "#0078D4") = 0;
+    virtual void updateCategory(const Category& c) = 0;
+    virtual bool removeCategory(const QString& id) = 0;
+    // 视图写权限：同一 id 被多处视图同时打开时互斥
     virtual bool acquire(const QString& id) = 0;
     virtual void release(const QString& id) = 0;
     virtual bool isWritable(const QString& id) const = 0;
-signals:
-    void noteChanged(QString id);
-    void categoryChanged(QString id);
+    // 事件回调
+    virtual void setNoteChangedCallback(NoteChangedCb cb) = 0;
+    virtual void setCategoryChangedCallback(CategoryChangedCb cb) = 0;
 };
 ```
 

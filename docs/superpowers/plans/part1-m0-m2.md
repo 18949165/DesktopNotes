@@ -108,7 +108,7 @@ target_include_directories(platform INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/includ
 - [ ] **Step 5: 验证配置成功**
 
 ```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH="C:/Qt/6.6.3/msvc2019_64"
+cmake -S . -B build -DCMAKE_PREFIX_PATH="C:/Qt/6.7.3/msvc2022_64"
 cmake --build build
 ```
 
@@ -378,7 +378,7 @@ public:
 
 ```cmake
 add_executable(platform_tests platform/filesystem_qt_test.cpp)
-target_link_libraries(platform_tests PRIVATE platform GTest::gtest_main Qt6::Test)
+target_link_libraries(platform_tests PRIVATE platform GTest::gtest_main Qt6::Core)
 gtest_discover_tests(platform_tests)
 ```
 
@@ -521,7 +521,7 @@ TEST(MockClock, StubsNow) {
 
 ```cmake
 add_executable(clock_tests platform/clock_test.cpp tests/platform/mock_clock.h)
-target_link_libraries(clock_tests PRIVATE platform GTest::gmock_main Qt6::Test)
+target_link_libraries(clock_tests PRIVATE platform GTest::gmock_main Qt6::Core)
 gtest_discover_tests(clock_tests)
 ```
 
@@ -597,19 +597,20 @@ void Notifier_Win::show(const Notification& n) {
 ```cpp
 // include/platform/ihotkey.h
 #pragma once
-#include <QObject>
 #include <QString>
+#include <Qt>
 #include <functional>
 namespace stickynotes::platform {
-class IHotkey : public QObject {
-    Q_OBJECT
+// 已重设计：M1.3 实操发现 Q_OBJECT 抽象接口 + gmock + MSVC moc 会触发 LNK2001，
+// 改为 std::function 回调（详见 spec §3.4 末段"回调替代 Qt signals"）。
+class IHotkey {
 public:
     struct Spec { int id; Qt::KeyboardModifiers mods; Qt::Key key; };
+    using TriggeredCb = std::function<void(int)>;
     virtual ~IHotkey() = default;
     virtual bool registerHotkey(const Spec& s) = 0;
     virtual bool unregisterHotkey(int id) = 0;
-signals:
-    void triggered(int id);
+    virtual void setTriggeredCallback(TriggeredCb cb) = 0;
 };
 }
 ```
@@ -641,19 +642,20 @@ bool Hotkey_Win::unregisterHotkey(int) { return true; }
 ```cpp
 // include/platform/itrayicon.h
 #pragma once
-#include <QObject>
+#include <QList>
+#include <QString>
 #include <functional>
 namespace stickynotes::platform {
-class ITrayIcon : public QObject {
-    Q_OBJECT
+// 已重设计：去 Q_OBJECT 抽象接口 + signals 改 std::function 回调（理由同 IHotkey）
+class ITrayIcon {
 public:
     struct MenuItem { QString text; std::function<void()> onClick; };
+    using LeftClickCb = std::function<void()>;
     virtual ~ITrayIcon() = default;
     virtual void show() = 0;
     virtual void hide() = 0;
     virtual void setMenu(const QList<MenuItem>& items) = 0;
-signals:
-    void leftClicked();
+    virtual void setLeftClickCallback(LeftClickCb cb) = 0;
 };
 }
 ```
@@ -747,7 +749,7 @@ TEST(MockNotifier, ShowReceivesFields) {
 ```cmake
 # tests/CMakeLists.txt 追加
 add_executable(notifier_tests platform/notifier_test.cpp tests/platform/mocks.h)
-target_link_libraries(notifier_tests PRIVATE platform GTest::gmock_main Qt6::Gui Qt6::Test)
+target_link_libraries(notifier_tests PRIVATE platform GTest::gmock_main Qt6::Gui Qt6::Core)
 gtest_discover_tests(notifier_tests)
 # hotkey_tests / trayicon_tests 同上
 ```
@@ -935,7 +937,7 @@ TEST(Note, EmptyRemindAtStaysInvalid) {
 ```cmake
 # tests/CMakeLists.txt
 add_executable(note_tests core/note_serialize_test.cpp)
-target_link_libraries(note_tests PRIVATE core GTest::gtest_main Qt6::Test)
+target_link_libraries(note_tests PRIVATE core GTest::gtest_main Qt6::Core)
 gtest_discover_tests(note_tests)
 ```
 
@@ -1045,7 +1047,7 @@ add_library(core STATIC src/note_serialize.cpp src/markdown_codec.cpp)
 ```cmake
 # tests/CMakeLists.txt
 add_executable(md_tests core/markdown_codec_test.cpp)
-target_link_libraries(md_tests PRIVATE core GTest::gtest_main Qt6::Test)
+target_link_libraries(md_tests PRIVATE core GTest::gtest_main Qt6::Core)
 gtest_discover_tests(md_tests)
 ```
 
@@ -1398,7 +1400,7 @@ TEST(FileNoteStore, UpsertUpdatesFile) {
 
 ```cmake
 add_executable(filenstore_tests core/file_notestore_test.cpp)
-target_link_libraries(filenstore_tests PRIVATE core platform GTest::gtest_main Qt6::Test)
+target_link_libraries(filenstore_tests PRIVATE core platform GTest::gtest_main Qt6::Core)
 target_include_directories(filenstore_tests PRIVATE tests)
 gtest_discover_tests(filenstore_tests)
 ```
