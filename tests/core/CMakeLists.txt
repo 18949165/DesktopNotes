@@ -3,7 +3,8 @@ include(GoogleTest)
 add_executable(core_tests
     note_serialize_test.cpp
     markdown_codec_test.cpp
-    file_notestore_test.cpp)
+    file_notestore_test.cpp
+    settings_test.cpp)
 target_link_libraries(core_tests
     PRIVATE
         core

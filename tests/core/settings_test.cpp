@@ -1,0 +1,36 @@
+#include <gtest/gtest.h>
+#include "core/settings.h"
+#include "core/fake_filesystem.h"
+using stickynotes::core::Settings;
+using stickynotes::testing::FakeFileSystem;
+
+TEST(Settings, DefaultsWhenMissing) {
+    FakeFileSystem fs;
+    auto s = Settings::load("/missing.json", fs);
+    EXPECT_EQ(s.hotkey, QString("Ctrl+Alt+N"));
+    EXPECT_TRUE(s.soundEnabled);
+}
+
+TEST(Settings, RoundTrip) {
+    FakeFileSystem fs;
+    Settings s; s.hotkey = "Ctrl+Alt+X"; s.soundEnabled = false;
+    s.dataDir = "/d"; ASSERT_TRUE(s.save(fs));
+    auto s2 = Settings::load("/d/settings.json", fs);
+    EXPECT_EQ(s2.hotkey, QString("Ctrl+Alt+X"));
+    EXPECT_FALSE(s2.soundEnabled);
+}
+
+TEST(Settings, InvalidJsonFallsBack) {
+    FakeFileSystem fs;
+    fs.data["/bad.json"] = "not json";
+    auto s = Settings::load("/bad.json", fs);
+    EXPECT_EQ(s.hotkey, QString("Ctrl+Alt+N"));
+}
+
+TEST(Settings, ThemeEnum) {
+    FakeFileSystem fs;
+    Settings s; s.theme = Settings::Theme::Dark; s.dataDir = "/d";
+    ASSERT_TRUE(s.save(fs));
+    auto s2 = Settings::load("/d/settings.json", fs);
+    EXPECT_EQ(s2.theme, Settings::Theme::Dark);
+}
