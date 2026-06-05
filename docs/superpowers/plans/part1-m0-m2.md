@@ -63,7 +63,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(StandardProjectSettings)
 include(CompilerWarnings)
 
-find_package(Qt6 6.6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 qt_standard_project_setup()
 
 # 第三方
@@ -77,10 +77,10 @@ FetchContent_Declare(googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# QFluentWidgets
+# UI：ElaWidgetTools
 FetchContent_Declare(qfluentwidgets
-    GIT_REPOSITORY https://github.com/zhiyiYo/Qt-Fluent-Widgets.git
-    GIT_TAG        master)  # TODO: 实施时锁定 release tag
+    GIT_REPOSITORY https://github.com/Liniyous/ElaWidgetTools.git
+    GIT_TAG        main)
 FetchContent_MakeAvailable(qfluentwidgets)
 
 enable_testing()
@@ -108,8 +108,8 @@ target_include_directories(platform INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/includ
 - [ ] **Step 5: 验证配置成功**
 
 ```bash
-cmake -S . -B build -G "Visual Studio 17 2022" -A x64
-cmake --build build --config Debug
+cmake -S . -B build -DCMAKE_PREFIX_PATH="C:/Qt/6.6.3/msvc2019_64"
+cmake --build build
 ```
 
 预期：`build/` 生成；无错误。

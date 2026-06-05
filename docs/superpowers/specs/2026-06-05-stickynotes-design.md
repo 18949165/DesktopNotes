@@ -7,7 +7,7 @@
 | 文档阶段 | 设计稿（待用户审阅） |
 | 目标平台 | Windows 10/11 |
 | 技术栈 | C++17、Qt 6.6+、CMake 3.21+、MSVC 2022 |
-| 第三方 UI 库 | QFluentWidgets（C++，通过 FetchContent 集成） |
+| 第三方 UI 库 | ElaWidgetTools（MIT，C++ Qt Widgets，通过 FetchContent 集成） |
 
 ---
 
