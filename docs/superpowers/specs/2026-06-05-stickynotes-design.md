@@ -375,7 +375,7 @@ sequenceDiagram
 ## 5. UI/UX 设计
 
 ### 5.1 视觉
-- 风格：Windows 11 Fluent Design（QFluentWidgets 提供 150+ 控件，统一主题）
+- 风格：Windows 11 Fluent Design（ElaWidgetTools 提供 60+ 控件，统一主题）
 - 暗色/亮色：跟随系统，可在设置中覆盖
 - 字体：默认 `Microsoft YaHei UI`（Win11 自带），可由用户改
 - 主窗口布局：
