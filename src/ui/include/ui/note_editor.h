@@ -20,6 +20,7 @@ signals:
 private:
     void rebuildFromMd();
     void updateBarEnabled();
+    bool eventFilter(QObject* o, QEvent* e) override;
     QTextEdit* edit_ = nullptr;
     QToolBar* bar_ = nullptr;
     core::Note current_;

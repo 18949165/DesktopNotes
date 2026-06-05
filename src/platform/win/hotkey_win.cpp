@@ -4,9 +4,10 @@
 #include <windows.h>
 
 namespace stickynotes::platform::win {
-class HotkeyFilter : public QAbstractNativeEventFilter {
+class HotkeyFilter : public QObject, public QAbstractNativeEventFilter {
+    Q_OBJECT
 public:
-    bool nativeEventFilter(const QByteArray&, void* msg, long*) override {
+    bool nativeEventFilter(const QByteArray&, void* msg, qintptr*) override {
         auto* m = static_cast<MSG*>(msg);
         if (m->message == WM_HOTKEY) {
             emit hotkey(m->wParam);
@@ -27,7 +28,7 @@ Hotkey_Win::Hotkey_Win() {
     }
     g_instances << this;
     
-    QObject::connect(g_filter, &HotkeyFilter::hotkey, this, [this](int id) {
+    QObject::connect(g_filter, &HotkeyFilter::hotkey, [this](int id) {
         for (const auto& s : specs_) {
             if (s.id == id && cb_) {
                 cb_(id);
@@ -70,3 +71,5 @@ void Hotkey_Win::setTriggeredCallback(TriggeredCb cb) {
     cb_ = std::move(cb);
 }
 }
+
+#include "hotkey_win.moc"
