@@ -10,4 +10,4 @@ add_library(ui STATIC
     include/ui/stickywindow.h
 )
 target_include_directories(ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(ui PUBLIC core app platform Qt6::Widgets)
+target_link_libraries(ui PUBLIC core app platform Qt6::Widgets ElaWidgetTools)

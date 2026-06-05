@@ -1,36 +1,51 @@
 #pragma once
 #include <QWidget>
-#include "core/note.h"
 #include "app/app_context.h"
+#include "core/note.h"
 
+class QTextEdit;
+class QLabel;
 class QPushButton;
+class QTimer;
 
 namespace stickynotes::ui {
-class NoteEditor;
-
 class StickyWindow : public QWidget {
     Q_OBJECT
 public:
-    StickyWindow(app::AppContext& ctx, core::Note note, QWidget* parent = nullptr);
-    core::Note note() const { return current_; }
-    void startFlash();
+    explicit StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent = nullptr);
+    ~StickyWindow();
+    core::Note note() const;
+    void setNote(const core::Note& n);
 protected:
-    void mousePressEvent(QMouseEvent*) override;
-    void mouseMoveEvent(QMouseEvent*) override;
-    void closeEvent(QCloseEvent*) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void mouseDoubleClickEvent(QMouseEvent* e) override;
+    void closeEvent(QCloseEvent* e) override;
 private slots:
-    void onPinToggled(bool on);
-    void onTopToggled(bool on);
-    void onEditorContentChanged();
+    void onPinToggled(bool checked);
+    void onClose();
+    void onSave();
+    void startFlash();
+    void stopFlash();
 private:
-    void persistGeometry();
-    
+    void buildUi();
+    void applyStyle();
+    void savePosition();
+    void loadPosition();
+
     app::AppContext& ctx_;
-    core::Note current_;
-    NoteEditor* editor_ = nullptr;
-    QPushButton* btnPin_ = nullptr;
-    QPushButton* btnTop_ = nullptr;
+    core::Note note_;
     QPoint dragPos_;
-    int flashLeft_ = 0;
+
+    // UI
+    QWidget* titleBar_ = nullptr;
+    QLabel* titleLabel_ = nullptr;
+    QPushButton* pinBtn_ = nullptr;
+    QPushButton* closeBtn_ = nullptr;
+    QTextEdit* editor_ = nullptr;
+
+    QTimer* flashTimer_ = nullptr;
+    bool isFlashing_ = false;
+    int flashCount_ = 0;
 };
 }

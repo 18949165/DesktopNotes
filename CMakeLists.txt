@@ -31,11 +31,11 @@ FetchContent_Declare(googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# UI：ElaWidgetTools (M0.1 暂不启用)
-# FetchContent_Declare(qfluentwidgets
-#     GIT_REPOSITORY https://github.com/Liniyous/ElaWidgetTools.git
-#     GIT_TAG        main)
-# FetchContent_MakeAvailable(qfluentwidgets)
+# UI：ElaWidgetTools
+FetchContent_Declare(ElaWidgetTools
+    GIT_REPOSITORY https://github.com/Liniyous/ElaWidgetTools.git
+    GIT_TAG        main)
+FetchContent_MakeAvailable(ElaWidgetTools)
 
 enable_testing()
 add_subdirectory(src/platform)

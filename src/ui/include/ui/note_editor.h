@@ -1,11 +1,12 @@
 #pragma once
-#include <QWidget>
+#include <ElaWidget.h>
 #include "core/note.h"
-class QTextEdit;
-class QToolBar;
+
+class ElaPlainTextEdit;
+class ElaToolButton;
 
 namespace stickynotes::ui {
-class NoteEditor : public QWidget {
+class NoteEditor : public ElaWidget {
     Q_OBJECT
 public:
     enum class Mode { ReadOnly, ReadWrite };
@@ -13,16 +14,18 @@ public:
     void setNote(const core::Note& n);
     core::Note note() const;
     void setMode(Mode m);
+    void setFocus();
+    ElaPlainTextEdit* textEdit() const { return edit_; }
 signals:
     void contentChanged();
-    void focusAcquired();
-    void focusLost();
 private:
+    ElaToolButton* mkBtn(ElaIconType::IconName icon, const QString& tip, const QString& shortcut = QString());
+    void wrapSelection(const QString& left, const QString& right);
+    void prefixLines(const QString& prefix);
     void rebuildFromMd();
-    void updateBarEnabled();
-    bool eventFilter(QObject* o, QEvent* e) override;
-    QTextEdit* edit_ = nullptr;
-    QToolBar* bar_ = nullptr;
+
+    QWidget* bar_ = nullptr;
+    ElaPlainTextEdit* edit_ = nullptr;
     core::Note current_;
     Mode mode_ = Mode::ReadWrite;
     bool internal_ = false;

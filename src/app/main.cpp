@@ -2,9 +2,11 @@
 #include <QStandardPaths>
 #include "app/app_context.h"
 #include "app/runtime.h"
+#include <ElaApplication.h>
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
+    eApp->init();
     QCoreApplication::setOrganizationName("StickyNotes");
     QCoreApplication::setApplicationName("StickyNotes");
     auto dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
