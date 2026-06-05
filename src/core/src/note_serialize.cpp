@@ -26,6 +26,10 @@ Note Note::fromJson(const QJsonObject& o) {
     n.id = o.value("id").toString();
     n.title = o.value("title").toString();
     n.contentMd = o.value("contentMd").toString();
+    // 兼容老数据：title 为空时回退到 contentMd 首行
+    if (n.title.isEmpty() && !n.contentMd.isEmpty()) {
+        n.title = n.contentMd.section('\n', 0, 0).left(80);
+    }
     n.categoryId = o.value("categoryId").toString();
     n.tags = o.value("tags").toVariant().toStringList();
     n.createdAt = QDateTime::fromString(o.value("createdAt").toString(), Qt::ISODate);

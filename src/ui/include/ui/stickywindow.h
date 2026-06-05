@@ -5,6 +5,7 @@
 
 class QTextEdit;
 class QLabel;
+class QLineEdit;
 class QPushButton;
 class QTimer;
 
@@ -21,6 +22,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* e) override;
     void mouseDoubleClickEvent(QMouseEvent* e) override;
     void closeEvent(QCloseEvent* e) override;
+    bool eventFilter(QObject* obj, QEvent* e) override;
 private slots:
     void onPinToggled(bool checked);
     void onClose();
@@ -40,6 +42,7 @@ private:
     // UI
     QWidget* titleBar_ = nullptr;
     QLabel* titleLabel_ = nullptr;
+    QLineEdit* titleEdit_ = nullptr;   // 独立标题输入
     QPushButton* pinBtn_ = nullptr;
     QPushButton* closeBtn_ = nullptr;
     QTextEdit* editor_ = nullptr;

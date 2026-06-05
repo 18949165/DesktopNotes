@@ -46,9 +46,10 @@ MainWindow::MainWindow(app::AppContext& ctx, QWidget* parent)
     setNavigationBarWidth(220);
     setIsCentralStackedWidgetTransparent(true);
 
-    // 应用已保存主题
-    eTheme->setThemeMode(ctx_.settings && ctx_.settings->theme == core::Settings::Theme::Dark
-                         ? ElaThemeType::Dark : ElaThemeType::Light);
+    // 主题由 ElaWindow AppBar 主题按钮控制；Settings 不持久化主题
+    if (eTheme->getThemeMode() != ElaThemeType::Dark) {
+        eTheme->setThemeMode(ElaThemeType::Dark);
+    }
 
     buildUi();
     wireSignals();
@@ -107,10 +108,6 @@ void MainWindow::buildMenuBar() {
     connect(themeAct, &QAction::triggered, this, [this]() {
         eTheme->setThemeMode(eTheme->getThemeMode() == ElaThemeType::Light
                              ? ElaThemeType::Dark : ElaThemeType::Light);
-        ctx_.settings->theme = (eTheme->getThemeMode() == ElaThemeType::Dark)
-                               ? core::Settings::Theme::Dark
-                               : core::Settings::Theme::Light;
-        ctx_.settings->save(*ctx_.fs);
         updateStatusBar();
     });
 }

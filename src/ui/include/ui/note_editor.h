@@ -3,6 +3,7 @@
 #include "core/note.h"
 
 class ElaPlainTextEdit;
+class ElaLineEdit;
 class ElaToolButton;
 
 namespace stickynotes::ui {
@@ -25,6 +26,7 @@ private:
     void rebuildFromMd();
 
     QWidget* bar_ = nullptr;
+    ElaLineEdit* titleEdit_ = nullptr;   // 独立标题输入
     ElaPlainTextEdit* edit_ = nullptr;
     core::Note current_;
     Mode mode_ = Mode::ReadWrite;

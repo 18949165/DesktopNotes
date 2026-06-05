@@ -4,8 +4,6 @@
 #include "core/settings.h"
 
 class ElaLineEdit;
-class ElaComboBox;
-class ElaToggleSwitch;
 class ElaPushButton;
 
 namespace stickynotes::ui {
@@ -16,11 +14,11 @@ public:
 private:
     void buildUi();
     void wireSignals();
-    
+
     app::AppContext& ctx_;
     ElaLineEdit* hotkeyEdit_ = nullptr;
-    ElaComboBox* themeCombo_ = nullptr;
-    ElaToggleSwitch* soundSwitch_ = nullptr;
+    ElaLineEdit* dataDirEdit_ = nullptr;
+    ElaPushButton* browseBtn_ = nullptr;
     ElaPushButton* okBtn_ = nullptr;
     ElaPushButton* cancelBtn_ = nullptr;
 };

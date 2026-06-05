@@ -1,6 +1,7 @@
 #include "ui/note_editor.h"
 #include "core/markdown_codec.h"
 #include <ElaToolButton.h>
+#include <ElaLineEdit.h>
 #include <ElaPlainTextEdit.h>
 #include <QHBoxLayout>
 #include <QTextCursor>
@@ -44,6 +45,16 @@ NoteEditor::NoteEditor(QWidget* parent) : ElaWidget(parent) {
     barLay->addWidget(linkBtn);
     barLay->addStretch();
 
+    // 独立标题
+    titleEdit_ = new ElaLineEdit(this);
+    titleEdit_->setObjectName("noteTitleEdit");
+    titleEdit_->setPlaceholderText("标题（可留空，自动用首行）");
+    titleEdit_->setStyleSheet(
+        "ElaLineEdit#noteTitleEdit{background:palette(window);border:0;"
+        "border-bottom:1px solid rgba(127,127,127,30%);padding:10px 16px;"
+        "font-size:15px;font-weight:600;color:palette(text);}"
+    );
+
     // 编辑器
     edit_ = new ElaPlainTextEdit(this);
     edit_->setFrameShape(QFrame::NoFrame);
@@ -51,13 +62,17 @@ NoteEditor::NoteEditor(QWidget* parent) : ElaWidget(parent) {
     edit_->setPlaceholderText("开始记录你的想法…（支持 Markdown：**粗体** *斜体* # 标题 - 列表 > 引用）");
 
     lay->addWidget(bar_);
+    lay->addWidget(titleEdit_);
     lay->addWidget(edit_, 1);
 
+    connect(titleEdit_, &ElaLineEdit::textChanged, this, [this](const QString& t) {
+        if (internal_) return;
+        current_.title = t;
+        emit contentChanged();
+    });
     connect(edit_, &ElaPlainTextEdit::textChanged, this, [this]() {
         if (internal_) return;
         current_.contentMd = edit_->toPlainText();
-        if (current_.contentMd.isEmpty()) current_.title = "";
-        else current_.title = current_.contentMd.section('\n', 0, 0).left(80);
         emit contentChanged();
     });
     connect(boldBtn,   &QToolButton::clicked, this, [this]() { wrapSelection("**", "**"); });
@@ -97,6 +112,7 @@ void NoteEditor::setNote(const core::Note& n) {
 
 void NoteEditor::rebuildFromMd() {
     internal_ = true;
+    titleEdit_->setText(current_.title);
     edit_->setPlainText(current_.contentMd);
     internal_ = false;
 }
@@ -105,8 +121,10 @@ core::Note NoteEditor::note() const { return current_; }
 
 void NoteEditor::setMode(Mode m) {
     mode_ = m;
-    edit_->setReadOnly(m == Mode::ReadOnly);
-    if (bar_) bar_->setEnabled(m == Mode::ReadWrite);
+    bool ro = (m == Mode::ReadOnly);
+    edit_->setReadOnly(ro);
+    titleEdit_->setReadOnly(ro);
+    if (bar_) bar_->setEnabled(!ro);
 }
 
 void NoteEditor::setFocus() {

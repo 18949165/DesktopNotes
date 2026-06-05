@@ -8,16 +8,16 @@ TEST(Settings, DefaultsWhenMissing) {
     FakeFileSystem fs;
     auto s = Settings::load("/missing.json", fs);
     EXPECT_EQ(s.hotkey, QString("Ctrl+Alt+N"));
-    EXPECT_TRUE(s.soundEnabled);
+    EXPECT_TRUE(s.dataDir.isEmpty());
 }
 
 TEST(Settings, RoundTrip) {
     FakeFileSystem fs;
-    Settings s; s.hotkey = "Ctrl+Alt+X"; s.soundEnabled = false;
+    Settings s; s.hotkey = "Ctrl+Alt+X";
     s.dataDir = "/d"; ASSERT_TRUE(s.save(fs));
     auto s2 = Settings::load("/d/settings.json", fs);
     EXPECT_EQ(s2.hotkey, QString("Ctrl+Alt+X"));
-    EXPECT_FALSE(s2.soundEnabled);
+    EXPECT_EQ(s2.dataDir, QString("/d"));
 }
 
 TEST(Settings, InvalidJsonFallsBack) {
@@ -25,12 +25,4 @@ TEST(Settings, InvalidJsonFallsBack) {
     fs.data["/bad.json"] = "not json";
     auto s = Settings::load("/bad.json", fs);
     EXPECT_EQ(s.hotkey, QString("Ctrl+Alt+N"));
-}
-
-TEST(Settings, ThemeEnum) {
-    FakeFileSystem fs;
-    Settings s; s.theme = Settings::Theme::Dark; s.dataDir = "/d";
-    ASSERT_TRUE(s.save(fs));
-    auto s2 = Settings::load("/d/settings.json", fs);
-    EXPECT_EQ(s2.theme, Settings::Theme::Dark);
 }

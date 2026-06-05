@@ -3,6 +3,7 @@
 #include <ElaIconButton.h>
 #include <QTextEdit>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -43,6 +44,14 @@ void StickyWindow::buildUi() {
 
     titleLabel_ = new QLabel(note_.title.isEmpty() ? "便签" : note_.title.left(20), titleBar_);
     titleLabel_->setObjectName("stickyTitleLabel");
+    titleLabel_->setVisible(note_.title.isEmpty() == false);
+
+    titleEdit_ = new QLineEdit(note_.title, titleBar_);
+    titleEdit_->setObjectName("stickyTitleEdit");
+    titleEdit_->setFrame(false);
+    titleEdit_->setPlaceholderText("便签标题（可留空）");
+    titleEdit_->setVisible(false);
+    titleEdit_->setStyleSheet("QLineEdit{background:transparent;border:0;color:#333;font-weight:600;}");
 
     pinBtn_ = new QPushButton(titleBar_);
     pinBtn_->setObjectName("stickyPinBtn");
@@ -60,8 +69,12 @@ void StickyWindow::buildUi() {
     barLay->setContentsMargins(8, 0, 4, 0);
     barLay->setSpacing(4);
     barLay->addWidget(titleLabel_, 1);
+    barLay->addWidget(titleEdit_, 1);
     barLay->addWidget(pinBtn_);
     barLay->addWidget(closeBtn_);
+
+    // 双击标题栏 label -> 切换为编辑
+    titleLabel_->installEventFilter(this);
 
     // 编辑区
     editor_ = new QTextEdit(this);
@@ -147,9 +160,11 @@ void StickyWindow::onClose() { close(); }
 
 void StickyWindow::onSave() {
     note_.contentMd = editor_->toPlainText();
-    if (note_.contentMd.isEmpty()) note_.title = "";
-    else note_.title = note_.contentMd.section('\n', 0, 0).left(80);
-    titleLabel_->setText(note_.title.isEmpty() ? "便签" : note_.title.left(20));
+    // title 独立维护：只有在 title 为空时（首次输入）才自动用首行填充
+    if (note_.title.isEmpty() && !note_.contentMd.isEmpty()) {
+        note_.title = note_.contentMd.section('\n', 0, 0).left(80);
+        titleLabel_->setText(note_.title.left(20));
+    }
     ctx_.notes->upsert(note_);
 }
 
@@ -189,6 +204,18 @@ void StickyWindow::mouseDoubleClickEvent(QMouseEvent* e) {
     }
 }
 
+bool StickyWindow::eventFilter(QObject* obj, QEvent* e) {
+    if (obj == titleLabel_ && e->type() == QEvent::MouseButtonDblClick) {
+        // 双击标题 -> 切换到编辑模式
+        titleLabel_->setVisible(false);
+        titleEdit_->setVisible(true);
+        titleEdit_->setFocus();
+        titleEdit_->selectAll();
+        return true;
+    }
+    return QWidget::eventFilter(obj, e);
+}
+
 void StickyWindow::closeEvent(QCloseEvent* e) {
     savePosition();
     e->accept();
@@ -198,6 +225,7 @@ void StickyWindow::setNote(const core::Note& n) {
     note_ = n;
     if (editor_) editor_->setPlainText(n.contentMd);
     if (titleLabel_) titleLabel_->setText(n.title.isEmpty() ? "便签" : n.title.left(20));
+    if (titleEdit_)  titleEdit_->setText(n.title);
 }
 
 void StickyWindow::savePosition() {
