@@ -129,6 +129,8 @@ void FileNoteStore::fireNoteChanged(const QString& id) {
 QList<Note> FileNoteStore::query(const QString& keyword, const QString& categoryId) const {
     QList<Note> out;
     for (const auto& n : notes_) {
+        // 与 all() 保持一致：默认排除已软删
+        if (n.deletedAt.isValid()) continue;
         if (!categoryId.isEmpty() && n.categoryId != categoryId) continue;
         if (keyword.isEmpty() ||
             n.title.contains(keyword, Qt::CaseInsensitive) ||

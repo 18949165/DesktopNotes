@@ -360,7 +360,7 @@ void MainWindow::refreshList() {
     for (const auto& note : items) {
         auto* it = new QStandardItem();
         QString title = note.title.isEmpty() ? "(无标题)" : note.title;
-        if (note.pinned) title = "📌 " + title;
+        if (note.pinned) title = "⭐ " + title;
         it->setText(title);
         it->setData(note.id, Qt::UserRole);
         QString preview = note.content.left(80).replace('\n', ' ');

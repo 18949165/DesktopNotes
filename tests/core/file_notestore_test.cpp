@@ -98,3 +98,16 @@ TEST(FileNoteStore, PermanentDeleteRemovesFile) {
     EXPECT_EQ(s.trash().size(), 0);
     EXPECT_FALSE(fs.data.contains("/data/notes/" + n.id + ".md"));
 }
+
+TEST(FileNoteStore, QueryExcludesSoftDeleted) {
+    FakeFileSystem fs;
+    FileNoteStore s("/data", fs);
+    auto a = s.create("inbox");
+    auto b = s.create("inbox");
+    s.softDelete(a.id);
+    // query("") 用于列表"全部"视图：必须排除已软删
+    EXPECT_EQ(s.query("").size(), 1);
+    EXPECT_EQ(s.query("").first().id, b.id);
+    // 带关键词也是
+    EXPECT_EQ(s.query("", "inbox").size(), 1);
+}
