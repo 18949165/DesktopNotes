@@ -6,4 +6,5 @@ gtest_discover_tests(smoke_test)
 
 add_subdirectory(platform)
 add_subdirectory(core)
+add_subdirectory(ui)
 # add_subdirectory(app) # 暂时注释，避免网络下载问题

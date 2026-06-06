@@ -1,6 +1,7 @@
 #pragma once
 #include <ElaWindow.h>
 #include <QHash>
+#include <functional>
 #include "app/app_context.h"
 
 class ElaLineEdit;
@@ -23,6 +24,8 @@ public:
     void showAndRaise();
     void openStickyWindow(const QString& noteId);
     void createNewNote();
+    // 注入 hotkey 重新注册回调（由 Runtime 注入）
+    void setReregisterHotkey(std::function<void(const QString&)> cb) { reregisterHotkey_ = std::move(cb); }
 public slots:
     void onNoteSelected(const QString& id);
 protected:
@@ -48,6 +51,7 @@ private:
     void updateStatusBar();
 
     app::AppContext& ctx_;
+    std::function<void(const QString&)> reregisterHotkey_;
 
     // 当前过滤
     QString currentCategoryId_ = "inbox"; // inbox/today/pinned/<categoryId>

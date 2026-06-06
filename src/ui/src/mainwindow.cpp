@@ -534,7 +534,11 @@ void MainWindow::onImportNotes() {
 
 void MainWindow::onShowSettings() {
     auto* dlg = new SettingsDialog(ctx_, this);
-    dlg->exec();
+    const int ret = dlg->exec();
+    if (ret == QDialog::Accepted && reregisterHotkey_) {
+        // 重新注册新建便签快捷键（用最新 settings->hotkey）
+        reregisterHotkey_(ctx_.settings->hotkey);
+    }
     dlg->deleteLater();
 }
 
