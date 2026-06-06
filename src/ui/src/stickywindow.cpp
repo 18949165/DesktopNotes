@@ -13,7 +13,7 @@
 
 namespace stickynotes::ui {
 StickyWindow::StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent)
-    : QWidget(parent, Qt::FramelessWindowHint),
+    : QWidget(parent, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool),
       ctx_(ctx), note_(note) {
     setAttribute(Qt::WA_TranslucentBackground, false);
     resize(320, 280);
@@ -52,7 +52,7 @@ void StickyWindow::buildUi() {
     // 置顶按钮（用 ElaToolButton + ElaIconType::Thumbtack）
     pinBtn_ = new ElaToolButton(titleBar_);
     pinBtn_->setCheckable(true);
-    pinBtn_->setChecked(true);
+    pinBtn_->setChecked(true);             // 默认置顶
     pinBtn_->setElaIcon(ElaIconType::Thumbtack);
     pinBtn_->setIconSize(QSize(16, 16));
     pinBtn_->setToolButtonStyle(Qt::ToolButtonIconOnly);

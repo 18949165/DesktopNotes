@@ -51,9 +51,11 @@ MainWindow::MainWindow(app::AppContext& ctx, QWidget* parent)
         "ElaNavigationBar#ElaNavigationBar{background-color:rgba(20,20,22,200);}"
         "QWidget#centralWidget{background-color:palette(window);}"
         "ElaListView{background-color:rgba(255,255,255,8);"
-        "            border-right:1px solid rgba(127,127,127,40);"
+        "            border-right:1px solid rgba(127,127,127,60);"
         "            border-radius:6px;}"
-        "ElaListView::item{height:64px;border-bottom:1px solid rgba(127,127,127,25);padding:8px;}"
+        "ElaListView::item{min-height:40px;max-height:40px;"
+        "                  border-bottom:1px solid rgba(127,127,127,60);"
+        "                  padding:6px 10px;}"
         "ElaListView::item:hover{background:rgba(127,127,127,30);}"
         "ElaListView::item:selected{background:rgba(98,124,186,80);}"
     );
@@ -197,7 +199,7 @@ void MainWindow::buildBody() {
 
     list_ = new ElaListView(body);
     list_->setIsTransparent(true);
-    list_->setItemHeight(56);
+    list_->setItemHeight(40);
 
     editor_ = new NoteEditor(body);
 
