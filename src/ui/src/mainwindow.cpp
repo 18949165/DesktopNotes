@@ -46,10 +46,12 @@ MainWindow::MainWindow(app::AppContext& ctx, QWidget* parent)
     setIsCentralStackedWidgetTransparent(true);
 
     // 视觉分区：左侧导航栏（更深） vs 中央内容区（稍亮） vs 列表（再深一档），
-    // 并让列表项之间出现明显分隔
+    // 左侧栏和便签栏之间有明显竖向分隔
     setStyleSheet(
-        "ElaNavigationBar#ElaNavigationBar{background-color:rgba(20,20,22,200);}"
-        "QWidget#centralWidget{background-color:palette(window);}"
+        "ElaNavigationBar#ElaNavigationBar{background-color:rgba(20,20,22,200);"
+        "                                border-right:1px solid rgba(127,127,127,80);}"
+        "QWidget#centralWidget{background-color:palette(window);"
+        "                     border-left:1px solid rgba(127,127,127,80);}"
         "ElaListView{background-color:rgba(255,255,255,8);"
         "            border-right:1px solid rgba(127,127,127,60);"
         "            border-radius:6px;}"

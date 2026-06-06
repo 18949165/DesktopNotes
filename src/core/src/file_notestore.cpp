@@ -77,6 +77,8 @@ bool FileNoteStore::remove(const QString& id) {
     if (!notes_.contains(id)) return false;
     notes_.remove(id);
     locks_.remove(id);
+    // 真正从磁盘删除：否则下次启动 loadIndex 会把 <id>.md 又加载回来
+    fs_.removeFile(notePath(id));
     fireNoteChanged(id);
     return true;
 }

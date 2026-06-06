@@ -1,4 +1,7 @@
 #include "ui/stickywindow.h"
+#ifdef Q_OS_WIN
+#  include <windows.h>
+#endif
 #include <ElaToolButton.h>
 #include <ElaPlainTextEdit.h>
 #include <ElaLineEdit.h>
@@ -10,6 +13,7 @@
 #include <QCloseEvent>
 #include <QPalette>
 #include <QTimer>
+#include <QApplication>
 
 namespace stickynotes::ui {
 StickyWindow::StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent)
@@ -127,13 +131,30 @@ void StickyWindow::applyStyle() {
 }
 
 void StickyWindow::onPinToggled(bool checked) {
-    Qt::WindowFlags base = Qt::FramelessWindowHint;
-    if (checked) base |= Qt::WindowStaysOnTopHint;
-    // 改变 window flags：setWindowFlags 必须配合 hide/show 才能真正生效
-    setWindowFlags(base);
+    // Qt::Tool + WindowStaysOnTopHint 在 Win32 上有可靠性问题（Tool windows
+    // 默认就在 owner 之上的 z-order 栈，且 hide/show 不一定能切 StaysOnTop 状态）。
+    // 直接用 Win32 SetWindowPos 切 HWND_TOPMOST / HWND_NOTOPMOST，最稳。
+    QWidget::setAttribute(Qt::WA_WState_Hidden, true);   // 抑制 hide 动画
     hide();
+    Qt::WindowFlags base = Qt::FramelessWindowHint | Qt::Tool;
+    if (checked) base |= Qt::WindowStaysOnTopHint;
+    setWindowFlags(base);
+    QApplication::processEvents();
     show();
-    raise();   // 重新提升到 z-order 栈顶
+#ifdef Q_OS_WIN
+    if (checked) {
+        // 提升到 TOPMOST
+        ::SetWindowPos(HWND(reinterpret_cast<HWND>(winId())),
+                       HWND_TOPMOST, 0, 0, 0, 0,
+                       SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    } else {
+        // 退回 NOTOPMOST
+        ::SetWindowPos(HWND(reinterpret_cast<HWND>(winId())),
+                       HWND_NOTOPMOST, 0, 0, 0, 0,
+                       SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+#endif
+    raise();
 }
 
 void StickyWindow::onClose() { close(); }

@@ -30,4 +30,9 @@ QStringList FileSystem_Qt::list(const QString& dir, const QStringList& nameFilte
 bool FileSystem_Qt::ensureDir(const QString& dir) {
     return QDir().mkpath(dir);
 }
+
+bool FileSystem_Qt::removeFile(const QString& path) {
+    if (!QFileInfo::exists(path)) return false;
+    return QFile::remove(path);
+}
 }

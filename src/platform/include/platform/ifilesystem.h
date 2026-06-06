@@ -13,5 +13,6 @@ public:
     virtual bool writeAtomic(const QString& path, const QByteArray& data) = 0;
     virtual QStringList list(const QString& dir, const QStringList& nameFilters) const = 0;
     virtual bool ensureDir(const QString& dir) = 0;
+    virtual bool removeFile(const QString& path) = 0;
 };
 }

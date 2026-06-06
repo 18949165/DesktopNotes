@@ -9,5 +9,6 @@ public:
     bool writeAtomic(const QString& path, const QByteArray& data) override;
     QStringList list(const QString& dir, const QStringList& nameFilters) const override;
     bool ensureDir(const QString& dir) override;
+    bool removeFile(const QString& path) override;
 };
 }

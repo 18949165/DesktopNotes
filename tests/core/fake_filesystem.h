@@ -19,5 +19,6 @@ public:
         return r;
     }
     bool ensureDir(const QString&) override { return true; }
+    bool removeFile(const QString& p) override { return data.remove(p) > 0; }
 };
 }
