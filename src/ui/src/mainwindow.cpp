@@ -136,6 +136,7 @@ void MainWindow::buildToolBar() {
 
     auto* newAct = toolBar_->addElaIconAction(ElaIconType::Note, "新建", QKeySequence("Ctrl+N"));
     auto* delAct = toolBar_->addElaIconAction(ElaIconType::TrashCan, "删除");
+    delAct->setShortcut(QKeySequence("Delete"));
     auto* pinAct = toolBar_->addElaIconAction(ElaIconType::Star, "标记重要/取消重要");
     auto* restoreAct = toolBar_->addElaIconAction(ElaIconType::ArrowRotateLeft, "恢复");
     auto* purAct     = toolBar_->addElaIconAction(ElaIconType::Eraser, "永久删除");
@@ -151,6 +152,8 @@ void MainWindow::buildToolBar() {
 
     connect(newAct, &QAction::triggered, this, &MainWindow::onNewNote);
     connect(delAct, &QAction::triggered, this, &MainWindow::onDeleteNote);
+    connect(restoreAct, &QAction::triggered, this, &MainWindow::onRestoreNote);
+    connect(purAct, &QAction::triggered, this, &MainWindow::onPermanentDeleteNote);
     connect(pinAct, &QAction::triggered, this, [this]() {
         if (currentNoteId_.isEmpty()) return;
         auto n = ctx_.notes->get(currentNoteId_);
@@ -422,6 +425,8 @@ void MainWindow::onDeleteNote() {
         return;
     }
     currentNoteId_.clear();
+    // 清空右侧编辑器，否则被软删便签的旧内容仍显示
+    if (editor_) editor_->setNote(core::Note{});
     refreshList();
     updateStatusBar();
     ElaMessageBar::success(ElaMessageBarType::Top, "已移到废纸篓", "可在废纸篓里恢复或永久删除", 2500, this);
@@ -439,6 +444,7 @@ void MainWindow::onPermanentDeleteNote() {
     if (currentNoteId_.isEmpty()) return;
     if (!ctx_.notes->permanentDelete(currentNoteId_)) return;
     currentNoteId_.clear();
+    if (editor_) editor_->setNote(core::Note{});
     refreshList();
     updateStatusBar();
     ElaMessageBar::success(ElaMessageBarType::Top, "已永久删除", nullptr, 2000, this);
