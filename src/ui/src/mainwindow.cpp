@@ -103,7 +103,7 @@ void MainWindow::buildMenuBar() {
     fileMenu->addAction("退出", qApp, &QApplication::quit);
 
     auto* editMenu = mb->addMenu("编辑(&E)");
-    auto* delAct = editMenu->addElaIconAction(ElaIconType::TrashCan, "删除当前便签 (移到废纸篓)", QKeySequence("Delete"));
+    auto* delAct = editMenu->addElaIconAction(ElaIconType::TrashCan, "移入废纸篓 (Delete)", QKeySequence("Delete"));
     auto* purActMenu = editMenu->addElaIconAction(ElaIconType::Eraser, "永久删除 (Shift+Del)", QKeySequence("Shift+Delete"));
 
     auto* viewMenu = mb->addMenu("视图(&V)");
@@ -135,7 +135,7 @@ void MainWindow::buildToolBar() {
     toolBar_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     auto* newAct = toolBar_->addElaIconAction(ElaIconType::Note, "新建", QKeySequence("Ctrl+N"));
-    auto* delAct = toolBar_->addElaIconAction(ElaIconType::TrashCan, "删除");
+    auto* delAct = toolBar_->addElaIconAction(ElaIconType::TrashCan, "移入废纸篓");
     delAct->setShortcut(QKeySequence("Delete"));
     auto* pinAct = toolBar_->addElaIconAction(ElaIconType::Star, "标记重要/取消重要");
     auto* restoreAct = toolBar_->addElaIconAction(ElaIconType::ArrowRotateLeft, "恢复");
@@ -193,7 +193,7 @@ void MainWindow::buildBody() {
         catLay->addWidget(btn);
         return btn;
     };
-    makeCatBtn("📥  收件箱", "inbox",  ElaIconType::Broom);
+    makeCatBtn("📥  全部",   "inbox",  ElaIconType::Broom);
     makeCatBtn("📅  今日",   "today",  ElaIconType::Calendar);
     makeCatBtn("⭐  重要",   "pinned", ElaIconType::Star);
     makeCatBtn("🗑  废纸篓", "trash",  ElaIconType::TrashCan);
