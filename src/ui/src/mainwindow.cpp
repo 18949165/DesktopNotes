@@ -483,7 +483,7 @@ void MainWindow::onExportNotes() {
 
 void MainWindow::onImportNotes() {
     auto path = QFileDialog::getOpenFileName(this, "导入便签", "",
-        "Markdown (*.md);;JSON (*.json)");
+        "Text (*.txt);;JSON (*.json)");
     if (path.isEmpty()) return;
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
