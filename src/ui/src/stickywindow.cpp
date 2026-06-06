@@ -13,7 +13,7 @@
 
 namespace stickynotes::ui {
 StickyWindow::StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent)
-    : QWidget(parent, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool),
+    : QWidget(parent, Qt::FramelessWindowHint),
       ctx_(ctx), note_(note) {
     setAttribute(Qt::WA_TranslucentBackground, false);
     resize(320, 280);
@@ -122,17 +122,18 @@ void StickyWindow::buildUi() {
 void StickyWindow::applyStyle() {
     titleBar_->setAutoFillBackground(true);
     auto pal = titleBar_->palette();
-    pal.setColor(QPalette::Window, QColor(250, 220, 80));
+    pal.setColor(QPalette::Window, QColor(147, 197, 253));
     titleBar_->setPalette(pal);
 }
 
 void StickyWindow::onPinToggled(bool checked) {
-    Qt::WindowFlags base = Qt::FramelessWindowHint | Qt::Tool;
+    Qt::WindowFlags base = Qt::FramelessWindowHint;
     if (checked) base |= Qt::WindowStaysOnTopHint;
-    // 改变 window flags 必须 hide 后重新 show 才生效
-    hide();
+    // 改变 window flags：setWindowFlags 必须配合 hide/show 才能真正生效
     setWindowFlags(base);
+    hide();
     show();
+    raise();   // 重新提升到 z-order 栈顶
 }
 
 void StickyWindow::onClose() { close(); }
@@ -157,7 +158,7 @@ void StickyWindow::stopFlash() {
     if (flashTimer_) flashTimer_->stop();
     if (titleBar_) {
         auto pal = titleBar_->palette();
-        pal.setColor(QPalette::Window, QColor(250, 220, 80));
+        pal.setColor(QPalette::Window, QColor(147, 197, 253));
         titleBar_->setPalette(pal);
     }
 }

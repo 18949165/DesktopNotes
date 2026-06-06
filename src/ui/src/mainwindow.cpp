@@ -45,6 +45,19 @@ MainWindow::MainWindow(app::AppContext& ctx, QWidget* parent)
     setNavigationBarWidth(220);
     setIsCentralStackedWidgetTransparent(true);
 
+    // 视觉分区：左侧导航栏（更深） vs 中央内容区（稍亮） vs 列表（再深一档），
+    // 并让列表项之间出现明显分隔
+    setStyleSheet(
+        "ElaNavigationBar#ElaNavigationBar{background-color:rgba(20,20,22,200);}"
+        "QWidget#centralWidget{background-color:palette(window);}"
+        "ElaListView{background-color:rgba(255,255,255,8);"
+        "            border-right:1px solid rgba(127,127,127,40);"
+        "            border-radius:6px;}"
+        "ElaListView::item{height:64px;border-bottom:1px solid rgba(127,127,127,25);padding:8px;}"
+        "ElaListView::item:hover{background:rgba(127,127,127,30);}"
+        "ElaListView::item:selected{background:rgba(98,124,186,80);}"
+    );
+
     // 主题由 ElaWindow AppBar 主题按钮控制；Settings 不持久化主题
     if (eTheme->getThemeMode() != ElaThemeType::Dark) {
         eTheme->setThemeMode(ElaThemeType::Dark);
