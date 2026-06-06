@@ -1,4 +1,5 @@
 #include "ui/settings_dialog.h"
+#include <ElaKeyBinder.h>
 #include <ElaLineEdit.h>
 #include <ElaPushButton.h>
 #include <QFormLayout>
@@ -15,8 +16,10 @@ SettingsDialog::SettingsDialog(app::AppContext& ctx, QWidget* parent)
 }
 
 void SettingsDialog::buildUi() {
-    hotkeyEdit_ = new ElaLineEdit(this);
-    hotkeyEdit_->setText(ctx_.settings->hotkey);
+    // 快捷键：ElaKeyBinder 点击后弹窗捕获按键
+    hotkeyBinder_ = new ElaKeyBinder(this);
+    hotkeyBinder_->setBinderKeyText(ctx_.settings->hotkey);
+    hotkeyBinder_->setMinimumWidth(240);
 
     dataDirEdit_ = new ElaLineEdit(this);
     dataDirEdit_->setText(ctx_.settings->dataDir);
@@ -31,7 +34,7 @@ void SettingsDialog::buildUi() {
     cancelBtn_ = new ElaPushButton("取消", this);
 
     auto* form = new QFormLayout();
-    form->addRow("新建便签快捷键", hotkeyEdit_);
+    form->addRow("新建便签快捷键", hotkeyBinder_);
     form->addRow("数据存储目录",   dataRow);
 
     auto* btnLayout = new QHBoxLayout();
@@ -52,7 +55,7 @@ void SettingsDialog::wireSignals() {
     });
 
     connect(okBtn_, &ElaPushButton::clicked, this, [this]() {
-        ctx_.settings->hotkey = hotkeyEdit_->text();
+        ctx_.settings->hotkey = hotkeyBinder_->getBinderKeyText();
         ctx_.settings->dataDir = dataDirEdit_->text();
         ctx_.settings->save(*ctx_.fs);
         accept();

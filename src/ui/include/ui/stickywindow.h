@@ -3,10 +3,10 @@
 #include "app/app_context.h"
 #include "core/note.h"
 
-class QTextEdit;
-class QLabel;
-class QLineEdit;
-class QPushButton;
+class ElaPlainTextEdit;
+class ElaLineEdit;
+class ElaToolButton;
+class ElaText;
 class QTimer;
 
 namespace stickynotes::ui {
@@ -39,13 +39,13 @@ private:
     core::Note note_;
     QPoint dragPos_;
 
-    // UI
+    // UI（全 Ela 控件）
     QWidget* titleBar_ = nullptr;
-    QLabel* titleLabel_ = nullptr;
-    QLineEdit* titleEdit_ = nullptr;   // 独立标题输入
-    QPushButton* pinBtn_ = nullptr;
-    QPushButton* closeBtn_ = nullptr;
-    QTextEdit* editor_ = nullptr;
+    ElaText* titleLabel_ = nullptr;
+    ElaLineEdit* titleEdit_ = nullptr;          // 双击标题切换为编辑
+    ElaToolButton* pinBtn_ = nullptr;
+    ElaToolButton* closeBtn_ = nullptr;
+    ElaPlainTextEdit* editor_ = nullptr;        // 纯文本编辑
 
     QTimer* flashTimer_ = nullptr;
     bool isFlashing_ = false;

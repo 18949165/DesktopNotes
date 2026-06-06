@@ -4,7 +4,6 @@
 
 class ElaPlainTextEdit;
 class ElaLineEdit;
-class ElaToolButton;
 
 namespace stickynotes::ui {
 class NoteEditor : public ElaWidget {
@@ -20,14 +19,10 @@ public:
 signals:
     void contentChanged();
 private:
-    ElaToolButton* mkBtn(ElaIconType::IconName icon, const QString& tip, const QString& shortcut = QString());
-    void wrapSelection(const QString& left, const QString& right);
-    void prefixLines(const QString& prefix);
     void rebuildFromMd();
 
-    QWidget* bar_ = nullptr;
     ElaLineEdit* titleEdit_ = nullptr;   // 独立标题输入
-    ElaPlainTextEdit* edit_ = nullptr;
+    ElaPlainTextEdit* edit_ = nullptr;   // 纯文本内容编辑
     core::Note current_;
     Mode mode_ = Mode::ReadWrite;
     bool internal_ = false;

@@ -11,7 +11,7 @@ struct Note {
     Q_GADGET
     Q_PROPERTY(QString id MEMBER id)
     Q_PROPERTY(QString title MEMBER title)
-    Q_PROPERTY(QString contentMd MEMBER contentMd)
+    Q_PROPERTY(QString content MEMBER content)
     Q_PROPERTY(QString categoryId MEMBER categoryId)
     Q_PROPERTY(QStringList tags MEMBER tags)
     Q_PROPERTY(QDateTime createdAt MEMBER createdAt)
@@ -22,7 +22,7 @@ struct Note {
 public:
     QString id;
     QString title;
-    QString contentMd;
+    QString content;       // 纯文本笔记内容
     QString categoryId;
     QStringList tags;
     QDateTime createdAt;

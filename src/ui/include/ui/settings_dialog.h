@@ -3,6 +3,7 @@
 #include "app/app_context.h"
 #include "core/settings.h"
 
+class ElaKeyBinder;
 class ElaLineEdit;
 class ElaPushButton;
 
@@ -16,7 +17,7 @@ private:
     void wireSignals();
 
     app::AppContext& ctx_;
-    ElaLineEdit* hotkeyEdit_ = nullptr;
+    ElaKeyBinder* hotkeyBinder_ = nullptr;     // 弹窗捕获按键
     ElaLineEdit* dataDirEdit_ = nullptr;
     ElaPushButton* browseBtn_ = nullptr;
     ElaPushButton* okBtn_ = nullptr;

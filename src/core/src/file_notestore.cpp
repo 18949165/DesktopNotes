@@ -43,7 +43,7 @@ void FileNoteStore::loadIndex() {
         QJsonDocument doc = QJsonDocument::fromJson(fm.toUtf8());
         if (!doc.isObject()) continue;  // 损坏：忽略
         Note n = Note::fromJson(doc.object());
-        n.contentMd = body;
+        n.content = body;
         notes_.insert(n.id, n);
     }
 }
@@ -84,7 +84,7 @@ bool FileNoteStore::remove(const QString& id) {
 void FileNoteStore::persistNote(const Note& n) {
     QJsonObject meta = n.toJson();
     QByteArray fm = QJsonDocument(meta).toJson(QJsonDocument::Compact);
-    QByteArray body = n.contentMd.toUtf8();
+    QByteArray body = n.content.toUtf8();
     QByteArray all = "---\n" + fm + "\n---\n" + body;
     fs_.writeAtomic(notePath(n.id), all);
 }
@@ -99,7 +99,7 @@ QList<Note> FileNoteStore::query(const QString& keyword, const QString& category
         if (!categoryId.isEmpty() && n.categoryId != categoryId) continue;
         if (keyword.isEmpty() ||
             n.title.contains(keyword, Qt::CaseInsensitive) ||
-            n.contentMd.contains(keyword, Qt::CaseInsensitive)) {
+            n.content.contains(keyword, Qt::CaseInsensitive)) {
             out.append(n);
         }
     }

@@ -7,7 +7,7 @@ TEST(Note, RoundTrip) {
     Note n;
     n.id = "abc";
     n.title = "T";
-    n.contentMd = "# h";
+    n.content = "hello";
     n.categoryId = "inbox";
     n.tags = {"a", "b"};
     n.createdAt = QDateTime::fromString("2026-06-05T10:00:00", Qt::ISODate);
@@ -20,7 +20,7 @@ TEST(Note, RoundTrip) {
     auto n2 = Note::fromJson(o);
     EXPECT_EQ(n2.id, n.id);
     EXPECT_EQ(n2.title, n.title);
-    EXPECT_EQ(n2.contentMd, n.contentMd);
+    EXPECT_EQ(n2.content, n.content);
     EXPECT_EQ(n2.categoryId, n.categoryId);
     EXPECT_EQ(n2.tags, n.tags);
     EXPECT_EQ(n2.remindAt, n.remindAt);

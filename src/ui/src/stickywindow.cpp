@@ -1,20 +1,15 @@
 #include "ui/stickywindow.h"
-#include "core/markdown_codec.h"
-#include <ElaIconButton.h>
-#include <QTextEdit>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
+#include <ElaToolButton.h>
+#include <ElaPlainTextEdit.h>
+#include <ElaLineEdit.h>
+#include <ElaText.h>
+#include <ElaDef.h>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QTimer>
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include <QPalette>
-#include <QApplication>
-#include <QScreen>
-#include <QStyle>
-#include <ElaApplication.h>
+#include <QTimer>
 
 namespace stickynotes::ui {
 StickyWindow::StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent)
@@ -39,48 +34,57 @@ StickyWindow::~StickyWindow() {
 void StickyWindow::buildUi() {
     // 标题栏
     titleBar_ = new QWidget(this);
-    titleBar_->setFixedHeight(28);
+    titleBar_->setFixedHeight(36);
     titleBar_->setObjectName("stickyTitle");
 
-    titleLabel_ = new QLabel(note_.title.isEmpty() ? "便签" : note_.title.left(20), titleBar_);
-    titleLabel_->setObjectName("stickyTitleLabel");
+    // 标题显示（默认；双击切换到 titleEdit_）
+    titleLabel_ = new ElaText(note_.title.isEmpty() ? "便签" : note_.title.left(20), titleBar_);
+    titleLabel_->setTextPixelSize(14);
+    titleLabel_->setIsWrapAnywhere(false);
     titleLabel_->setVisible(note_.title.isEmpty() == false);
 
-    titleEdit_ = new QLineEdit(note_.title, titleBar_);
-    titleEdit_->setObjectName("stickyTitleEdit");
-    titleEdit_->setFrame(false);
+    // 标题编辑（默认隐藏）
+    titleEdit_ = new ElaLineEdit(titleBar_);
+    titleEdit_->setText(note_.title);
     titleEdit_->setPlaceholderText("便签标题（可留空）");
     titleEdit_->setVisible(false);
-    titleEdit_->setStyleSheet("QLineEdit{background:transparent;border:0;color:#333;font-weight:600;}");
 
-    pinBtn_ = new QPushButton(titleBar_);
-    pinBtn_->setObjectName("stickyPinBtn");
+    // 置顶按钮（用 ElaToolButton + ElaIconType::Thumbtack）
+    pinBtn_ = new ElaToolButton(titleBar_);
     pinBtn_->setCheckable(true);
     pinBtn_->setChecked(true);
-    pinBtn_->setFixedSize(24, 24);
+    pinBtn_->setElaIcon(ElaIconType::Thumbtack);
+    pinBtn_->setIconSize(QSize(16, 16));
+    pinBtn_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    pinBtn_->setFixedSize(28, 28);
     pinBtn_->setToolTip("置顶/取消置顶");
+    pinBtn_->setIsTransparent(true);
 
-    closeBtn_ = new QPushButton(titleBar_);
-    closeBtn_->setObjectName("stickyCloseBtn");
-    closeBtn_->setFixedSize(24, 24);
+    // 关闭按钮（用 ElaToolButton + ElaIconType::Xmark）
+    closeBtn_ = new ElaToolButton(titleBar_);
+    closeBtn_->setElaIcon(ElaIconType::Xmark);
+    closeBtn_->setIconSize(QSize(16, 16));
+    closeBtn_->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    closeBtn_->setFixedSize(28, 28);
     closeBtn_->setToolTip("关闭");
+    closeBtn_->setIsTransparent(true);
 
     auto* barLay = new QHBoxLayout(titleBar_);
-    barLay->setContentsMargins(8, 0, 4, 0);
+    barLay->setContentsMargins(10, 0, 4, 0);
     barLay->setSpacing(4);
     barLay->addWidget(titleLabel_, 1);
     barLay->addWidget(titleEdit_, 1);
     barLay->addWidget(pinBtn_);
     barLay->addWidget(closeBtn_);
 
-    // 双击标题栏 label -> 切换为编辑
+    // 双击标题 label -> 切换为编辑
     titleLabel_->installEventFilter(this);
 
-    // 编辑区
-    editor_ = new QTextEdit(this);
+    // 纯文本编辑区
+    editor_ = new ElaPlainTextEdit(this);
     editor_->setFrameShape(QFrame::NoFrame);
     editor_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    editor_->setPlainText(note_.contentMd);
+    editor_->setPlainText(note_.content);
     editor_->setPlaceholderText("便签内容…");
 
     auto* root = new QVBoxLayout(this);
@@ -89,9 +93,20 @@ void StickyWindow::buildUi() {
     root->addWidget(titleBar_);
     root->addWidget(editor_, 1);
 
-    connect(pinBtn_, &QPushButton::toggled, this, &StickyWindow::onPinToggled);
-    connect(closeBtn_, &QPushButton::clicked, this, &StickyWindow::onClose);
-    connect(editor_, &QTextEdit::textChanged, this, &StickyWindow::onSave);
+    connect(pinBtn_,   &ElaToolButton::toggled,       this, &StickyWindow::onPinToggled);
+    connect(closeBtn_, &ElaToolButton::clicked,       this, &StickyWindow::onClose);
+    connect(editor_,   &ElaPlainTextEdit::textChanged, this, &StickyWindow::onSave);
+
+    connect(titleEdit_, &ElaLineEdit::editingFinished, this, [this]() {
+        note_.title = titleEdit_->text();
+        titleEdit_->setVisible(false);
+        titleLabel_->setText(note_.title.isEmpty() ? "便签" : note_.title.left(20));
+        titleLabel_->setVisible(true);
+        ctx_.notes->upsert(note_);
+    });
+    connect(titleEdit_, &ElaLineEdit::textChanged, this, [this](const QString& t) {
+        titleLabel_->setText(t.isEmpty() ? "便签" : t.left(20));
+    });
 
     flashTimer_ = new QTimer(this);
     connect(flashTimer_, &QTimer::timeout, this, [this]() {
@@ -105,41 +120,6 @@ void StickyWindow::buildUi() {
 }
 
 void StickyWindow::applyStyle() {
-    QString btnStyle = R"(
-        QPushButton {
-            background: transparent;
-            border: none;
-            border-radius: 4px;
-        }
-        QPushButton:hover { background: rgba(127,127,127,40); }
-        QPushButton:pressed { background: rgba(127,127,127,80); }
-    )";
-    pinBtn_->setStyleSheet(btnStyle);
-    closeBtn_->setStyleSheet(btnStyle);
-
-    // 标题文字和按钮
-    setStyleSheet(R"(
-        QWidget#stickyTitle {
-            background: #FAE550;
-            border-bottom: 1px solid rgba(127,127,127,40%);
-        }
-        QLabel#stickyTitleLabel {
-            color: #333;
-            font-size: 12px;
-            font-weight: 600;
-            background: transparent;
-        }
-        QTextEdit {
-            background: #FFF7AE;
-            color: #222;
-            border: none;
-            padding: 8px;
-            font-size: 13px;
-            selection-background-color: #EBC900;
-        }
-    )");
-    pinBtn_->setText("📌");
-    closeBtn_->setText("✕");
     titleBar_->setAutoFillBackground(true);
     auto pal = titleBar_->palette();
     pal.setColor(QPalette::Window, QColor(250, 220, 80));
@@ -153,16 +133,15 @@ void StickyWindow::onPinToggled(bool checked) {
     hide();
     setWindowFlags(base);
     show();
-    pinBtn_->setText(checked ? "📌" : "📍");
 }
 
 void StickyWindow::onClose() { close(); }
 
 void StickyWindow::onSave() {
-    note_.contentMd = editor_->toPlainText();
+    note_.content = editor_->toPlainText();
     // title 独立维护：只有在 title 为空时（首次输入）才自动用首行填充
-    if (note_.title.isEmpty() && !note_.contentMd.isEmpty()) {
-        note_.title = note_.contentMd.section('\n', 0, 0).left(80);
+    if (note_.title.isEmpty() && !note_.content.isEmpty()) {
+        note_.title = note_.content.section('\n', 0, 0).left(80);
         titleLabel_->setText(note_.title.left(20));
     }
     ctx_.notes->upsert(note_);
@@ -206,7 +185,6 @@ void StickyWindow::mouseDoubleClickEvent(QMouseEvent* e) {
 
 bool StickyWindow::eventFilter(QObject* obj, QEvent* e) {
     if (obj == titleLabel_ && e->type() == QEvent::MouseButtonDblClick) {
-        // 双击标题 -> 切换到编辑模式
         titleLabel_->setVisible(false);
         titleEdit_->setVisible(true);
         titleEdit_->setFocus();
@@ -223,9 +201,9 @@ void StickyWindow::closeEvent(QCloseEvent* e) {
 
 void StickyWindow::setNote(const core::Note& n) {
     note_ = n;
-    if (editor_) editor_->setPlainText(n.contentMd);
+    if (editor_) editor_->setPlainText(n.content);
     if (titleLabel_) titleLabel_->setText(n.title.isEmpty() ? "便签" : n.title.left(20));
-    if (titleEdit_)  titleEdit_->setText(n.title);
+    if (titleEdit_) titleEdit_->setText(n.title);
 }
 
 void StickyWindow::savePosition() {
@@ -235,21 +213,7 @@ void StickyWindow::savePosition() {
 
 void StickyWindow::loadPosition() {
     if (note_.windowGeometry.isValid() && note_.windowGeometry.width() > 0) {
-        QRect g = note_.windowGeometry;
-        auto* screen = QApplication::primaryScreen();
-        if (screen) {
-            QRect avail = screen->availableGeometry();
-            if (!avail.intersects(g)) g.moveCenter(avail.center());
-        }
-        setGeometry(g);
-    } else {
-        auto* screen = QApplication::primaryScreen();
-        if (screen) {
-            QRect avail = screen->availableGeometry();
-            move(avail.center() - QPoint(width() / 2, height() / 2));
-        }
+        setGeometry(note_.windowGeometry);
     }
 }
-
-core::Note StickyWindow::note() const { return note_; }
 }

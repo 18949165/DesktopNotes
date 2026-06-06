@@ -4,7 +4,6 @@
 #include "ui/settings_dialog.h"
 #include "core/note.h"
 #include "core/category.h"
-#include "core/markdown_codec.h"
 #include "app/app_context.h"
 
 #include <ElaListView.h>
@@ -340,7 +339,7 @@ void MainWindow::refreshList() {
         if (note.pinned) title = "📌 " + title;
         it->setText(title);
         it->setData(note.id, Qt::UserRole);
-        QString preview = note.contentMd.left(80).replace('\n', ' ');
+        QString preview = note.content.left(80).replace('\n', ' ');
         if (!preview.isEmpty()) {
             it->setData(QString("%1\n%2").arg(title, preview), Qt::ToolTipRole);
         }
@@ -438,7 +437,7 @@ void MainWindow::onExportNotes() {
         QJsonArray arr;
         for (const auto& n : ctx_.notes->all()) {
             QJsonObject o;
-            o["id"] = n.id; o["title"] = n.title; o["contentMd"] = n.contentMd;
+            o["id"] = n.id; o["title"] = n.title; o["content"] = n.content;
             o["categoryId"] = n.categoryId; o["tags"] = n.tags.join(",");
             o["createdAt"] = n.createdAt.toString(Qt::ISODate);
             o["updatedAt"] = n.updatedAt.toString(Qt::ISODate);
@@ -457,8 +456,8 @@ void MainWindow::onExportNotes() {
             QTextStream ts(&f);
             ts.setEncoding(QStringConverter::Utf8);
             for (const auto& n : ctx_.notes->all()) {
-                ts << "# " << (n.title.isEmpty() ? "(无标题)" : n.title) << "\n\n";
-                ts << n.contentMd << "\n\n---\n\n";
+                ts << "=== " << (n.title.isEmpty() ? "(无标题)" : n.title) << " ===\n\n";
+                ts << n.content << "\n\n---\n\n";
             }
         }
     }
@@ -482,7 +481,7 @@ void MainWindow::onImportNotes() {
             core::Note n;
             n.id = obj["id"].toString();
             n.title = obj["title"].toString();
-            n.contentMd = obj["contentMd"].toString();
+            n.content = obj["content"].toString();
             n.categoryId = obj["categoryId"].toString("inbox");
             n.tags = obj["tags"].toString().split(',', Qt::SkipEmptyParts);
             n.createdAt = QDateTime::fromString(obj["createdAt"].toString(), Qt::ISODate);
@@ -495,16 +494,17 @@ void MainWindow::onImportNotes() {
         }
     } else {
         QString text = QString::fromUtf8(f.readAll());
-        const QStringList parts = text.split("\n# ", Qt::SkipEmptyParts);
+        // 纯文本按 === title === 段分割（与导出格式一致）
+        const QStringList parts = text.split("=== ", Qt::SkipEmptyParts);
         for (const auto& p : parts) {
             core::Note n = ctx_.notes->create("inbox");
-            int nl = p.indexOf('\n');
-            if (nl < 0) { n.title = p; n.contentMd = p; }
+            int end = p.indexOf(" ===");
+            if (end < 0) { n.title = p.section('\n', 0, 0).trimmed(); n.content = p; }
             else {
-                n.title = p.left(nl).trimmed();
-                n.contentMd = p.mid(nl + 1).trimmed();
+                n.title = p.left(end).trimmed();
+                int firstNL = p.indexOf('\n', end);
+                n.content = (firstNL < 0) ? QString() : p.mid(firstNL + 1).trimmed();
             }
-            n.contentMd = "# " + n.title + "\n\n" + n.contentMd;
             ctx_.notes->upsert(n);
             ++imported;
         }

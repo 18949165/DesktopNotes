@@ -8,7 +8,7 @@ QJsonObject Note::toJson() const {
     QJsonObject o;
     o["id"] = id;
     o["title"] = title;
-    o["contentMd"] = contentMd;
+    o["content"] = content;
     o["categoryId"] = categoryId;
     o["tags"] = QJsonArray::fromStringList(tags);
     o["createdAt"] = createdAt.toString(Qt::ISODate);
@@ -25,10 +25,14 @@ Note Note::fromJson(const QJsonObject& o) {
     Note n;
     n.id = o.value("id").toString();
     n.title = o.value("title").toString();
-    n.contentMd = o.value("contentMd").toString();
-    // 兼容老数据：title 为空时回退到 contentMd 首行
-    if (n.title.isEmpty() && !n.contentMd.isEmpty()) {
-        n.title = n.contentMd.section('\n', 0, 0).left(80);
+    // 兼容老数据：优先读 content，缺失则回退到 contentMd
+    n.content = o.value("content").toString();
+    if (n.content.isEmpty()) {
+        n.content = o.value("contentMd").toString();
+    }
+    // 兼容老数据：title 为空时回退到 content 首行
+    if (n.title.isEmpty() && !n.content.isEmpty()) {
+        n.title = n.content.section('\n', 0, 0).left(80);
     }
     n.categoryId = o.value("categoryId").toString();
     n.tags = o.value("tags").toVariant().toStringList();
