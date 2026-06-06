@@ -10,9 +10,12 @@ public:
     FileNoteStore(QString dataDir, platform::IFileSystem& fs);
     QList<Note> all() const override;
     std::optional<Note> get(const QString& id) const override;
+    QList<Note> trash() const override;
     Note create(const QString& categoryId) override;
     void upsert(const Note& n) override;
-    bool remove(const QString& id) override;
+    bool softDelete(const QString& id) override;
+    bool restore(const QString& id) override;
+    bool permanentDelete(const QString& id) override;
     QList<Note> query(const QString& keyword, const QString& categoryId = {}) const override;
     QList<Category> categories() const override;
     Category createCategory(const QString& name, const QString& color = "#0078D4") override;

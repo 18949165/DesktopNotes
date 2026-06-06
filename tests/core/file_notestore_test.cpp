@@ -64,3 +64,37 @@ TEST(FileNoteStore, CannotRemoveInbox) {
     FileNoteStore store("/data", fs);
     EXPECT_FALSE(store.removeCategory("inbox"));
 }
+
+TEST(FileNoteStore, SoftDeleteHidesFromAllAndShowsInTrash) {
+    FakeFileSystem fs;
+    FileNoteStore s("/data", fs);
+    auto a = s.create("inbox");
+    auto b = s.create("inbox");
+    EXPECT_TRUE(s.softDelete(a.id));
+    EXPECT_EQ(s.all().size(), 1);
+    EXPECT_EQ(s.trash().size(), 1);
+    EXPECT_TRUE(s.trash().first().id == a.id);
+    // 文件应保留
+    EXPECT_TRUE(fs.data.contains("/data/notes/" + a.id + ".md"));
+}
+
+TEST(FileNoteStore, RestoreBringsBackToAll) {
+    FakeFileSystem fs;
+    FileNoteStore s("/data", fs);
+    auto n = s.create("inbox");
+    s.softDelete(n.id);
+    EXPECT_EQ(s.all().size(), 0);
+    EXPECT_TRUE(s.restore(n.id));
+    EXPECT_EQ(s.all().size(), 1);
+    EXPECT_EQ(s.trash().size(), 0);
+}
+
+TEST(FileNoteStore, PermanentDeleteRemovesFile) {
+    FakeFileSystem fs;
+    FileNoteStore s("/data", fs);
+    auto n = s.create("inbox");
+    EXPECT_TRUE(s.permanentDelete(n.id));
+    EXPECT_EQ(s.all().size(), 0);
+    EXPECT_EQ(s.trash().size(), 0);
+    EXPECT_FALSE(fs.data.contains("/data/notes/" + n.id + ".md"));
+}

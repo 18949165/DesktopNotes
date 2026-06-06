@@ -33,6 +33,8 @@ protected:
 private slots:
     void onNewNote();
     void onDeleteNote();
+    void onRestoreNote();
+    void onPermanentDeleteNote();
     void onSetReminder();
     void onOpenSticky();
     void onExportNotes();

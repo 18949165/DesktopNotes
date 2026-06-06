@@ -48,7 +48,18 @@ void FileNoteStore::loadIndex() {
     }
 }
 
-QList<Note> FileNoteStore::all() const { return notes_.values(); }
+QList<Note> FileNoteStore::all() const {
+    QList<Note> out;
+    for (const auto& n : notes_)
+        if (!n.deletedAt.isValid()) out.append(n);
+    return out;
+}
+QList<Note> FileNoteStore::trash() const {
+    QList<Note> out;
+    for (const auto& n : notes_)
+        if (n.deletedAt.isValid()) out.append(n);
+    return out;
+}
 std::optional<Note> FileNoteStore::get(const QString& id) const {
     if (!notes_.contains(id)) return std::nullopt;
     return notes_[id];
@@ -73,7 +84,27 @@ void FileNoteStore::upsert(const Note& n) {
     fireNoteChanged(m.id);
 }
 
-bool FileNoteStore::remove(const QString& id) {
+bool FileNoteStore::softDelete(const QString& id) {
+    if (!notes_.contains(id)) return false;
+    Note n = notes_[id];
+    n.deletedAt = QDateTime::currentDateTime();
+    notes_[id] = n;
+    persistNote(n);
+    fireNoteChanged(id);
+    return true;
+}
+
+bool FileNoteStore::restore(const QString& id) {
+    if (!notes_.contains(id)) return false;
+    Note n = notes_[id];
+    n.deletedAt = QDateTime();
+    notes_[id] = n;
+    persistNote(n);
+    fireNoteChanged(id);
+    return true;
+}
+
+bool FileNoteStore::permanentDelete(const QString& id) {
     if (!notes_.contains(id)) return false;
     notes_.remove(id);
     locks_.remove(id);

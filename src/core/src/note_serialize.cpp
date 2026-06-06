@@ -40,6 +40,8 @@ Note Note::fromJson(const QJsonObject& o) {
     n.updatedAt = QDateTime::fromString(o.value("updatedAt").toString(), Qt::ISODate);
     const auto rs = o.value("remindAt").toString();
     if (!rs.isEmpty()) n.remindAt = QDateTime::fromString(rs, Qt::ISODate);
+    const auto ds = o.value("deletedAt").toString();
+    if (!ds.isEmpty()) n.deletedAt = QDateTime::fromString(ds, Qt::ISODate);
     n.pinned = o.value("pinned").toBool();
     auto g = o.value("windowGeometry").toObject();
     n.windowGeometry = QRect(g["x"].toInt(), g["y"].toInt(), g["w"].toInt(), g["h"].toInt());

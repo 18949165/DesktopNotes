@@ -103,7 +103,8 @@ void MainWindow::buildMenuBar() {
     fileMenu->addAction("退出", qApp, &QApplication::quit);
 
     auto* editMenu = mb->addMenu("编辑(&E)");
-    auto* delAct = editMenu->addElaIconAction(ElaIconType::TrashCan, "删除当前便签", QKeySequence("Delete"));
+    auto* delAct = editMenu->addElaIconAction(ElaIconType::TrashCan, "删除当前便签 (移到废纸篓)", QKeySequence("Delete"));
+    auto* purActMenu = editMenu->addElaIconAction(ElaIconType::Eraser, "永久删除 (Shift+Del)", QKeySequence("Shift+Delete"));
 
     auto* viewMenu = mb->addMenu("视图(&V)");
     viewMenu->addElaIconAction(ElaIconType::Sun, "切换主题");
@@ -119,6 +120,7 @@ void MainWindow::buildMenuBar() {
 
     connect(newAct, &QAction::triggered, this, &MainWindow::onNewNote);
     connect(delAct, &QAction::triggered, this, &MainWindow::onDeleteNote);
+    connect(purActMenu, &QAction::triggered, this, &MainWindow::onPermanentDeleteNote);
     connect(exportAct, &QAction::triggered, this, &MainWindow::onExportNotes);
     connect(importAct, &QAction::triggered, this, &MainWindow::onImportNotes);
     connect(themeAct, &QAction::triggered, this, [this]() {
@@ -134,7 +136,9 @@ void MainWindow::buildToolBar() {
 
     auto* newAct = toolBar_->addElaIconAction(ElaIconType::Note, "新建", QKeySequence("Ctrl+N"));
     auto* delAct = toolBar_->addElaIconAction(ElaIconType::TrashCan, "删除");
-    auto* pinAct = toolBar_->addElaIconAction(ElaIconType::Thumbtack, "置顶/取消置顶");
+    auto* pinAct = toolBar_->addElaIconAction(ElaIconType::Star, "标记重要/取消重要");
+    auto* restoreAct = toolBar_->addElaIconAction(ElaIconType::ArrowRotateLeft, "恢复");
+    auto* purAct     = toolBar_->addElaIconAction(ElaIconType::Eraser, "永久删除");
     auto* remAct = toolBar_->addElaIconAction(ElaIconType::Bell, "提醒");
     auto* openAct = toolBar_->addElaIconAction(ElaIconType::Text, "弹出便签");
     toolBar_->addSeparator();
@@ -155,7 +159,7 @@ void MainWindow::buildToolBar() {
         ctx_.notes->upsert(*n);
         refreshList();
         ElaMessageBar::success(ElaMessageBarType::Top, "已更新",
-            n->pinned ? "已置顶" : "已取消置顶", 2000, this);
+            n->pinned ? "已标记为重要" : "已取消重要", 2000, this);
     });
     connect(remAct, &QAction::triggered, this, &MainWindow::onSetReminder);
     connect(openAct, &QAction::triggered, this, &MainWindow::onOpenSticky);
@@ -188,7 +192,7 @@ void MainWindow::buildBody() {
     };
     makeCatBtn("📥  收件箱", "inbox",  ElaIconType::Broom);
     makeCatBtn("📅  今日",   "today",  ElaIconType::Calendar);
-    makeCatBtn("📌  置顶",   "pinned", ElaIconType::Thumbtack);
+    makeCatBtn("⭐  重要",   "pinned", ElaIconType::Star);
     makeCatBtn("🗑  废纸篓", "trash",  ElaIconType::TrashCan);
     catLay->addStretch();
     if (auto* b = catGroup_->button(0)) b->setChecked(true);
@@ -343,7 +347,7 @@ void MainWindow::refreshList() {
     } else if (currentCategoryId_ == "pinned") {
         for (const auto& n : ctx_.notes->all()) if (n.pinned) items.append(n);
     } else if (currentCategoryId_ == "trash") {
-        items = {};
+        items = ctx_.notes->trash();
     } else if (currentCategoryId_ == "inbox") {
         items = kw.isEmpty() ? ctx_.notes->query("") : ctx_.notes->query(kw);
     } else {
@@ -412,15 +416,32 @@ void MainWindow::onDeleteNote() {
         ElaMessageBar::warning(ElaMessageBarType::Top, "提示", "请先选中一条便签", 2000, this);
         return;
     }
-    if (!ctx_.notes->remove(currentNoteId_)) {
+    // 软删：移到废纸篓。文件保留。
+    if (!ctx_.notes->softDelete(currentNoteId_)) {
         ElaMessageBar::error(ElaMessageBarType::Top, "失败", "无法删除只读便签", 2000, this);
         return;
     }
     currentNoteId_.clear();
-    editor_->setNote(core::Note{});
     refreshList();
     updateStatusBar();
-    ElaMessageBar::success(ElaMessageBarType::Top, "已删除", "便签已删除", 1500, this);
+    ElaMessageBar::success(ElaMessageBarType::Top, "已移到废纸篓", "可在废纸篓里恢复或永久删除", 2500, this);
+}
+
+void MainWindow::onRestoreNote() {
+    if (currentNoteId_.isEmpty()) return;
+    if (!ctx_.notes->restore(currentNoteId_)) return;
+    refreshList();
+    updateStatusBar();
+    ElaMessageBar::success(ElaMessageBarType::Top, "已恢复", nullptr, 2000, this);
+}
+
+void MainWindow::onPermanentDeleteNote() {
+    if (currentNoteId_.isEmpty()) return;
+    if (!ctx_.notes->permanentDelete(currentNoteId_)) return;
+    currentNoteId_.clear();
+    refreshList();
+    updateStatusBar();
+    ElaMessageBar::success(ElaMessageBarType::Top, "已永久删除", nullptr, 2000, this);
 }
 
 void MainWindow::onSetReminder() {
@@ -551,7 +572,7 @@ void MainWindow::updateStatusBar() {
     int n = ctx_.notes->all().size();
     int pinned = 0;
     for (const auto& x : ctx_.notes->all()) if (x.pinned) ++pinned;
-    statusNoteCount_->setText(QString("📝 共 %1 条便签  ·  置顶 %2 条").arg(n).arg(pinned));
+    statusNoteCount_->setText(QString("📝 共 %1 条便签  ·  重要 %2 条").arg(n).arg(pinned));
     if (statusTheme_) {
         auto mode = eTheme->getThemeMode() == ElaThemeType::Dark ? "🌙 深色" : "☀ 浅色";
         statusTheme_->setText(QString("主题: %1").arg(mode));
