@@ -4,10 +4,12 @@ add_library(ui STATIC
     src/mainwindow.cpp
     src/settings_dialog.cpp
     src/stickywindow.cpp
+    src/hotkey_edit.cpp
     include/ui/note_editor.h
     include/ui/mainwindow.h
     include/ui/settings_dialog.h
     include/ui/stickywindow.h
+    include/ui/hotkey_edit.h
 )
 target_include_directories(ui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(ui PUBLIC core app platform Qt6::Widgets ElaWidgetTools)

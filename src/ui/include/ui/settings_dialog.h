@@ -2,12 +2,12 @@
 #include <ElaDialog.h>
 #include "app/app_context.h"
 #include "core/settings.h"
+#include "ui/hotkey_edit.h"
 
-class ElaKeyBinder;
 class ElaLineEdit;
 class ElaPushButton;
-
 namespace stickynotes::ui {
+class HotkeyEdit;
 class SettingsDialog : public ElaDialog {
     Q_OBJECT
 public:
@@ -17,7 +17,7 @@ private:
     void wireSignals();
 
     app::AppContext& ctx_;
-    ElaKeyBinder* hotkeyBinder_ = nullptr;     // 弹窗捕获按键
+    HotkeyEdit* hotkeyEdit_ = nullptr;     // 弹窗捕获按键
     ElaLineEdit* dataDirEdit_ = nullptr;
     ElaPushButton* browseBtn_ = nullptr;
     ElaPushButton* okBtn_ = nullptr;
