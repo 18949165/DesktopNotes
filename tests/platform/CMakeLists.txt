@@ -4,6 +4,7 @@ add_executable(platform_tests
     filesystem_qt_test.cpp
     clock_test.cpp
     hotkey_test.cpp
+    ihotkey_parsespec_test.cpp
     trayicon_test.cpp
     ${CMAKE_SOURCE_DIR}/tests/platform/mock_clock.h
     ${CMAKE_SOURCE_DIR}/tests/platform/mocks.h)

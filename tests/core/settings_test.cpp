@@ -26,3 +26,10 @@ TEST(Settings, InvalidJsonFallsBack) {
     auto s = Settings::load("/bad.json", fs);
     EXPECT_EQ(s.hotkey, QString("Ctrl+Alt+N"));
 }
+
+TEST(Settings, SaveFailure) {
+    FakeFileSystem fs;
+    fs.failWrites = true;
+    Settings s; s.dataDir = "/d";
+    EXPECT_FALSE(s.save(fs));
+}

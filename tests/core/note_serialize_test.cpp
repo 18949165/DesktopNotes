@@ -31,3 +31,74 @@ TEST(Note, IsValidById) {
     n.id = "1";
     EXPECT_TRUE(n.isValid());
 }
+
+TEST(Note, FromJsonContentMdFallback) {
+    QJsonObject o;
+    o["id"] = "abc";
+    o["contentMd"] = "legacy markdown";
+    auto n = Note::fromJson(o);
+    EXPECT_EQ(n.content, "legacy markdown");
+}
+
+TEST(Note, FromJsonContentPreferredOverMd) {
+    QJsonObject o;
+    o["id"] = "abc";
+    o["content"] = "new content";
+    o["contentMd"] = "old content";
+    auto n = Note::fromJson(o);
+    EXPECT_EQ(n.content, "new content");
+}
+
+TEST(Note, FromJsonTitleFallsBackToContentFirstLine) {
+    QJsonObject o;
+    o["id"] = "abc";
+    o["content"] = "First line\nSecond line";
+    auto n = Note::fromJson(o);
+    EXPECT_EQ(n.title, "First line");
+}
+
+TEST(Note, FromJsonTitleNotOverwrittenIfNotEmpty) {
+    QJsonObject o;
+    o["id"] = "abc";
+    o["title"] = "Existing";
+    o["content"] = "Should not override";
+    auto n = Note::fromJson(o);
+    EXPECT_EQ(n.title, "Existing");
+}
+
+TEST(Note, FromJsonReadsDeletedAt) {
+    QJsonObject o;
+    o["id"] = "abc";
+    o["deletedAt"] = "2026-06-06T12:00:00";
+    auto n = Note::fromJson(o);
+    EXPECT_TRUE(n.deletedAt.isValid());
+}
+
+TEST(Note, FromJsonMissingFields) {
+    QJsonObject o;
+    o["id"] = "abc";
+    auto n = Note::fromJson(o);
+    EXPECT_TRUE(n.title.isEmpty());
+    EXPECT_TRUE(n.content.isEmpty());
+    EXPECT_TRUE(n.tags.isEmpty());
+    EXPECT_FALSE(n.pinned);
+    EXPECT_TRUE(n.windowGeometry.isNull());
+}
+
+TEST(Note, TagsSerialization) {
+    Note n;
+    n.id = "abc";
+    n.tags = {"work", "urgent", "meeting"};
+    auto o = n.toJson();
+    auto n2 = Note::fromJson(o);
+    EXPECT_EQ(n2.tags.size(), 3);
+    EXPECT_TRUE(n2.tags.contains("urgent"));
+}
+
+TEST(Note, EmptyTags) {
+    Note n;
+    n.id = "abc";
+    auto o = n.toJson();
+    auto n2 = Note::fromJson(o);
+    EXPECT_TRUE(n2.tags.isEmpty());
+}
