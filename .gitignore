@@ -42,3 +42,9 @@ Testing/
 *.gcda
 *.gcno
 coverage/
+
+# Build artifacts
+cmake-config.log
+
+# Internal docs (not needed in remote)
+docs/
