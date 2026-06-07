@@ -33,12 +33,17 @@ FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG        v1.15.2)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+# 不让 gtest/gmock 提供 install 规则, 避免 cpack 抓到
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # UI：ElaWidgetTools
 FetchContent_Declare(ElaWidgetTools
     GIT_REPOSITORY https://github.com/Liniyous/ElaWidgetTools.git
     GIT_TAG        main)
+# 不让 Ela 提供 install 规则, 避免 cpack 抓到 ElaWidgetTools.dll
+set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(Ela_Framework_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_GetProperties(ElaWidgetTools)
 if(NOT elawidgettools_SOURCE_DIR)
     FetchContent_Populate(ElaWidgetTools)
@@ -80,4 +85,7 @@ set(CPACK_NSIS_HELP_LINK "https://github.com/your-repo/stickynotes")
 set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/your-repo/stickynotes")
 set(CPACK_NSIS_CONTACT "noreply@example.com")
 set(CPACK_NSIS_MODIFY_PATH ON)
+
+# 只装我们项目的 target, 避免 FetchContent 引入的 gmock/gtest 也来凑热闹
+set(CPACK_INSTALL_DEFAULT_COMPONENTS "")
 include(CPack)
