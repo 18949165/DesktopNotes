@@ -48,3 +48,6 @@ cmake-config.log
 
 # Internal docs (not needed in remote)
 docs/
+
+# Scripts (not needed in remote)
+scripts/
