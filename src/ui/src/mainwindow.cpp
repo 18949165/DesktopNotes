@@ -3,7 +3,6 @@
 #include "ui/stickywindow.h"
 #include "ui/settings_dialog.h"
 #include "core/note.h"
-#include "core/category.h"
 #include "app/app_context.h"
 
 #include <ElaListView.h>
@@ -69,7 +68,6 @@ MainWindow::MainWindow(app::AppContext& ctx, QWidget* parent)
 
     buildUi();
     wireSignals();
-    refreshCategories();
     refreshList();
     updateStatusBar();
 }
@@ -293,9 +291,6 @@ void MainWindow::wireSignals() {
         refreshList();
         updateStatusBar();
     });
-    ctx_.notes->setCategoryChangedCallback([this](const QString&) {
-        refreshCategories();
-    });
 
     // 分类过滤
     if (catGroup_) {
@@ -328,10 +323,6 @@ void MainWindow::closeEvent(QCloseEvent* e) {
     } else {
         e->accept();
     }
-}
-
-void MainWindow::refreshCategories() {
-    // 内置分类不通过 INoteStore，由按钮组完成；自定义分类可追加（v1 暂未做）
 }
 
 void MainWindow::refreshList() {
@@ -470,7 +461,6 @@ void MainWindow::onExportNotes() {
             o["categoryId"] = n.categoryId; o["tags"] = n.tags.join(",");
             o["createdAt"] = n.createdAt.toString(Qt::ISODate);
             o["updatedAt"] = n.updatedAt.toString(Qt::ISODate);
-            o["remindAt"]  = n.remindAt.toString(Qt::ISODate);
             o["pinned"]    = n.pinned;
             arr.append(o);
         }
@@ -515,7 +505,6 @@ void MainWindow::onImportNotes() {
             n.tags = obj["tags"].toString().split(',', Qt::SkipEmptyParts);
             n.createdAt = QDateTime::fromString(obj["createdAt"].toString(), Qt::ISODate);
             n.updatedAt = QDateTime::fromString(obj["updatedAt"].toString(), Qt::ISODate);
-            n.remindAt  = QDateTime::fromString(obj["remindAt"].toString(), Qt::ISODate);
             n.pinned    = obj["pinned"].toBool();
             if (n.id.isEmpty()) n = ctx_.notes->create(n.categoryId);
             else ctx_.notes->upsert(n);
@@ -552,10 +541,6 @@ void MainWindow::onShowSettings() {
         reregisterHotkey_(ctx_.settings->hotkey);
     }
     dlg->deleteLater();
-}
-
-void MainWindow::onCategoryChanged(int) {
-    refreshList();
 }
 
 void MainWindow::updateStatusBar() {

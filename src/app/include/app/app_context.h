@@ -3,7 +3,6 @@
 #include <QString>
 #include "platform/ifilesystem.h"
 #include "platform/iclock.h"
-#include "platform/inotifier.h"
 #include "platform/ihotkey.h"
 #include "platform/itrayicon.h"
 #include "core/inotestore.h"
@@ -13,7 +12,6 @@ namespace stickynotes::app {
 struct AppContext {
     std::unique_ptr<platform::IFileSystem> fs;
     std::unique_ptr<platform::IClock> clock;
-    std::unique_ptr<platform::INotifier> notifier;
     std::unique_ptr<platform::IHotkey> hotkey;
     std::unique_ptr<platform::ITrayIcon> tray;
     std::unique_ptr<core::INoteStore> notes;

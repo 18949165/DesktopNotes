@@ -12,7 +12,6 @@
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include <QPalette>
-#include <QTimer>
 #include <QApplication>
 
 namespace stickynotes::ui {
@@ -24,15 +23,10 @@ StickyWindow::StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget
     buildUi();
     applyStyle();
     loadPosition();
-
-    if (!note_.remindAt.isNull() && note_.remindAt <= QDateTime::currentDateTime()) {
-        startFlash();
-    }
 }
 
 StickyWindow::~StickyWindow() {
     savePosition();
-    stopFlash();
 }
 
 void StickyWindow::buildUi() {
@@ -111,16 +105,6 @@ void StickyWindow::buildUi() {
     connect(titleEdit_, &ElaLineEdit::textChanged, this, [this](const QString& t) {
         titleLabel_->setText(t.isEmpty() ? "便签" : t.left(20));
     });
-
-    flashTimer_ = new QTimer(this);
-    connect(flashTimer_, &QTimer::timeout, this, [this]() {
-        auto pal = titleBar_->palette();
-        pal.setColor(QPalette::Window, isFlashing_ ? QColor(255, 235, 130) : QColor(250, 220, 80));
-        titleBar_->setPalette(pal);
-        titleBar_->setAutoFillBackground(true);
-        isFlashing_ = !isFlashing_;
-        if (++flashCount_ > 12) stopFlash();
-    });
 }
 
 void StickyWindow::applyStyle() {
@@ -169,21 +153,6 @@ void StickyWindow::onSave() {
     ctx_.notes->upsert(note_);
 }
 
-void StickyWindow::startFlash() {
-    flashCount_ = 0;
-    isFlashing_ = false;
-    flashTimer_->start(350);
-}
-
-void StickyWindow::stopFlash() {
-    if (flashTimer_) flashTimer_->stop();
-    if (titleBar_) {
-        auto pal = titleBar_->palette();
-        pal.setColor(QPalette::Window, QColor(147, 197, 253));
-        titleBar_->setPalette(pal);
-    }
-}
-
 void StickyWindow::mousePressEvent(QMouseEvent* e) {
     if (e->button() == Qt::LeftButton) {
         dragPos_ = e->globalPosition().toPoint() - frameGeometry().topLeft();
@@ -219,13 +188,6 @@ bool StickyWindow::eventFilter(QObject* obj, QEvent* e) {
 void StickyWindow::closeEvent(QCloseEvent* e) {
     savePosition();
     e->accept();
-}
-
-void StickyWindow::setNote(const core::Note& n) {
-    note_ = n;
-    if (editor_) editor_->setPlainText(n.content);
-    if (titleLabel_) titleLabel_->setText(n.title.isEmpty() ? "便签" : n.title.left(20));
-    if (titleEdit_) titleEdit_->setText(n.title);
 }
 
 void StickyWindow::savePosition() {

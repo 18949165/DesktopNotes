@@ -1,7 +1,6 @@
 # src/app/CMakeLists.txt
 add_library(app STATIC
     src/app_context.cpp
-    src/app_entry.cpp
     src/runtime.cpp
     include/app/runtime.h
 )

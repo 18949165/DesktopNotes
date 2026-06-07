@@ -1,15 +1,9 @@
 #pragma once
 #include <gmock/gmock.h>
-#include "platform/inotifier.h"
 #include "platform/ihotkey.h"
 #include "platform/itrayicon.h"
 
 namespace stickynotes::platform {
-class MockNotifier : public INotifier {
-public:
-    MOCK_METHOD(void, show, (const Notification&), (override));
-};
-
 class MockHotkey : public IHotkey {
 public:
     MOCK_METHOD(bool, registerHotkey, (const Spec&), (override));

@@ -1,8 +1,6 @@
 #include "core/file_notestore.h"
 #include "core/note.h"
-#include "core/category.h"
 #include <QFileInfo>
-#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUuid>
@@ -14,15 +12,7 @@ FileNoteStore::FileNoteStore(QString dataDir, platform::IFileSystem& fs)
     : dir_(std::move(dataDir)), fs_(fs) {
     fs_.ensureDir(dir_);
     fs_.ensureDir(dir_ + "/notes");
-    ensureInbox();
     loadIndex();
-}
-
-void FileNoteStore::ensureInbox() {
-    if (!categories_.contains("inbox")) {
-        Category c; c.id = "inbox"; c.name = "Inbox"; c.color = "#0078D4";
-        categories_.insert(c.id, c);
-    }
 }
 
 QString FileNoteStore::notePath(const QString& id) const {
@@ -107,7 +97,6 @@ bool FileNoteStore::restore(const QString& id) {
 bool FileNoteStore::permanentDelete(const QString& id) {
     if (!notes_.contains(id)) return false;
     notes_.remove(id);
-    locks_.remove(id);
     // 真正从磁盘删除：否则下次启动 loadIndex 会把 <id>.md 又加载回来
     fs_.removeFile(notePath(id));
     fireNoteChanged(id);
@@ -141,57 +130,5 @@ QList<Note> FileNoteStore::query(const QString& keyword, const QString& category
     return out;
 }
 
-QList<Category> FileNoteStore::categories() const { return categories_.values(); }
-
-Category FileNoteStore::createCategory(const QString& name, const QString& color) {
-    Category c;
-    c.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    c.name = name; c.color = color;
-    categories_.insert(c.id, c);
-    if (catCb_) catCb_(c.id);
-    return c;
-}
-
-void FileNoteStore::updateCategory(const Category& c) {
-    categories_[c.id] = c;
-    if (catCb_) catCb_(c.id);
-}
-
-bool FileNoteStore::removeCategory(const QString& id) {
-    if (id == "inbox") return false;  // inbox 不可删
-    if (!categories_.contains(id)) return false;
-    categories_.remove(id);
-    if (catCb_) catCb_(id);
-    return true;
-}
-
 void FileNoteStore::setNoteChangedCallback(NoteChangedCb cb) { noteCb_ = std::move(cb); }
-void FileNoteStore::setCategoryChangedCallback(CategoryChangedCb cb) { catCb_ = std::move(cb); }
-
-// 视图写锁
-bool FileNoteStore::acquire(const QString& id) {
-    int cur = locks_.value(id, 0);
-    if (cur == 0) { locks_[id] = 1; return true; }
-    locks_[id] = cur + 1;
-    return false;
-}
-
-void FileNoteStore::release(const QString& id) {
-    int cur = locks_.value(id, 0);
-    if (cur <= 1) {
-        locks_.remove(id);
-        // 引用计数降为 0：把暂存的修改落盘
-        if (dirty_.contains(id)) {
-            const Note& n = dirty_[id];
-            persistNote(n);
-            dirty_.remove(id);
-        }
-    } else {
-        locks_[id] = cur - 1;
-    }
-}
-
-bool FileNoteStore::isWritable(const QString& id) const {
-    return locks_.value(id, 0) == 0;
-}
 }

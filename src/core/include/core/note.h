@@ -16,7 +16,6 @@ struct Note {
     Q_PROPERTY(QStringList tags MEMBER tags)
     Q_PROPERTY(QDateTime createdAt MEMBER createdAt)
     Q_PROPERTY(QDateTime updatedAt MEMBER updatedAt)
-    Q_PROPERTY(QDateTime remindAt MEMBER remindAt)
     Q_PROPERTY(QDateTime deletedAt MEMBER deletedAt)
     Q_PROPERTY(bool pinned MEMBER pinned)
     Q_PROPERTY(QRect windowGeometry MEMBER windowGeometry)
@@ -28,7 +27,6 @@ public:
     QStringList tags;
     QDateTime createdAt;
     QDateTime updatedAt;
-    QDateTime remindAt;
     QDateTime deletedAt;   // 空 = 未删除；非空 = 软删除时间
     bool pinned = false;
     QRect windowGeometry;

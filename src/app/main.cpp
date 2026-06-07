@@ -15,7 +15,3 @@ int main(int argc, char* argv[]) {
     rt.start();
     return app.exec();
 }
-
-namespace stickynotes {
-int runHeadless(QCoreApplication&) { return 0; }
-}

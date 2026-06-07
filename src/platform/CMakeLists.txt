@@ -1,7 +1,6 @@
 add_library(platform STATIC
     win/filesystem_qt.cpp
     win/system_clock.cpp
-    win/notifier_win.cpp
     win/hotkey_win.cpp
     win/trayicon_win.cpp)
 target_include_directories(platform PUBLIC include)

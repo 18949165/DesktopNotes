@@ -16,7 +16,6 @@ public:
     Runtime(AppContext& ctx, QApplication& app);
     void start();
     void requestQuit();
-    stickynotes::ui::MainWindow* mainWindow() const { return main_; }
     // 重新注册新建便签快捷键：先 unregister 旧的（若 id=1），再按新字符串注册
     void reregisterHotkey(const QString& hotkeyStr);
 private:

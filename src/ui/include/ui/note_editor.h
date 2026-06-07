@@ -15,7 +15,6 @@ public:
     core::Note note() const;
     void setMode(Mode m);
     void setFocus();
-    ElaPlainTextEdit* textEdit() const { return edit_; }
 signals:
     void contentChanged();
 private:

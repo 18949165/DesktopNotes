@@ -39,7 +39,6 @@ private slots:
     void onExportNotes();
     void onImportNotes();
     void onShowSettings();
-    void onCategoryChanged(int id);
 private:
     void buildUi();
     void buildMenuBar();
@@ -47,7 +46,6 @@ private:
     void buildBody();
     void buildStatusBar();
     void wireSignals();
-    void refreshCategories();
     void refreshList();
     void updateStatusBar();
 

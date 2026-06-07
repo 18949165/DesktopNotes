@@ -7,7 +7,6 @@ class ElaPlainTextEdit;
 class ElaLineEdit;
 class ElaToolButton;
 class ElaText;
-class QTimer;
 
 namespace stickynotes::ui {
 class StickyWindow : public QWidget {
@@ -16,7 +15,6 @@ public:
     explicit StickyWindow(app::AppContext& ctx, const core::Note& note, QWidget* parent = nullptr);
     ~StickyWindow();
     core::Note note() const;
-    void setNote(const core::Note& n);
 protected:
     void mousePressEvent(QMouseEvent* e) override;
     void mouseMoveEvent(QMouseEvent* e) override;
@@ -27,8 +25,6 @@ private slots:
     void onPinToggled(bool checked);
     void onClose();
     void onSave();
-    void startFlash();
-    void stopFlash();
 private:
     void buildUi();
     void applyStyle();
@@ -46,9 +42,5 @@ private:
     ElaToolButton* pinBtn_ = nullptr;
     ElaToolButton* closeBtn_ = nullptr;
     ElaPlainTextEdit* editor_ = nullptr;        // 纯文本编辑
-
-    QTimer* flashTimer_ = nullptr;
-    bool isFlashing_ = false;
-    int flashCount_ = 0;
 };
 }

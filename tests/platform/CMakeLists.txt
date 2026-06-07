@@ -3,7 +3,6 @@ include(GoogleTest)
 add_executable(platform_tests
     filesystem_qt_test.cpp
     clock_test.cpp
-    notifier_test.cpp
     hotkey_test.cpp
     trayicon_test.cpp
     ${CMAKE_SOURCE_DIR}/tests/platform/mock_clock.h

@@ -52,19 +52,6 @@ TEST(FileNoteStore, QueryFiltersByCategory) {
     EXPECT_EQ(s.query("", "").size(), 2);
 }
 
-TEST(FileNoteStore, InboxCategoryAlwaysPresent) {
-    FakeFileSystem fs;
-    FileNoteStore s("/data", fs);
-    EXPECT_EQ(s.categories().size(), 1);
-    EXPECT_EQ(s.categories().first().id, "inbox");
-}
-
-TEST(FileNoteStore, CannotRemoveInbox) {
-    FakeFileSystem fs;
-    FileNoteStore store("/data", fs);
-    EXPECT_FALSE(store.removeCategory("inbox"));
-}
-
 TEST(FileNoteStore, SoftDeleteHidesFromAllAndShowsInTrash) {
     FakeFileSystem fs;
     FileNoteStore s("/data", fs);

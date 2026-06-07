@@ -19,8 +19,6 @@ public:
     explicit HotkeyEdit(QWidget* parent = nullptr);
     QString keySequence() const;
     void setKeySequence(const QString& s);
-signals:
-    void keySequenceChanged(const QString& s);
 protected:
     void focusInEvent(QFocusEvent* e) override;
     void focusOutEvent(QFocusEvent* e) override;

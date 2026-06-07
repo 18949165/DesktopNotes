@@ -50,7 +50,6 @@ void HotkeyEdit::keyPressEvent(QKeyEvent* e) {
     // Backspace → 清空
     if (e->key() == Qt::Key_Backspace && pendingText_.isEmpty()) {
         captureText_.clear();
-        emit keySequenceChanged(captureText_);
         setText(QString());
         e->accept();
         return;
@@ -94,7 +93,6 @@ void HotkeyEdit::renderCaptured() {
 void HotkeyEdit::commitCaptured() {
     if (!pendingText_.isEmpty()) {
         captureText_ = pendingText_;
-        emit keySequenceChanged(captureText_);
     }
     setText(captureText_);
     pendingText_.clear();
