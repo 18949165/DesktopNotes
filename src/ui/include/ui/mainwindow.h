@@ -35,7 +35,6 @@ private slots:
     void onDeleteNote();
     void onRestoreNote();
     void onPermanentDeleteNote();
-    void onSetReminder();
     void onOpenSticky();
     void onExportNotes();
     void onImportNotes();

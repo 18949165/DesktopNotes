@@ -140,7 +140,6 @@ void MainWindow::buildToolBar() {
     auto* pinAct = toolBar_->addElaIconAction(ElaIconType::Star, "标记重要/取消重要");
     auto* restoreAct = toolBar_->addElaIconAction(ElaIconType::ArrowRotateLeft, "恢复");
     auto* purAct     = toolBar_->addElaIconAction(ElaIconType::Eraser, "永久删除");
-    auto* remAct = toolBar_->addElaIconAction(ElaIconType::Bell, "提醒");
     auto* openAct = toolBar_->addElaIconAction(ElaIconType::Text, "弹出便签");
     toolBar_->addSeparator();
     auto* expAct = toolBar_->addElaIconAction(ElaIconType::Share, "导出");
@@ -164,7 +163,6 @@ void MainWindow::buildToolBar() {
         ElaMessageBar::success(ElaMessageBarType::Top, "已更新",
             n->pinned ? "已标记为重要" : "已取消重要", 2000, this);
     });
-    connect(remAct, &QAction::triggered, this, &MainWindow::onSetReminder);
     connect(openAct, &QAction::triggered, this, &MainWindow::onOpenSticky);
     connect(expAct, &QAction::triggered, this, &MainWindow::onExportNotes);
     connect(impAct, &QAction::triggered, this, &MainWindow::onImportNotes);
@@ -448,19 +446,6 @@ void MainWindow::onPermanentDeleteNote() {
     refreshList();
     updateStatusBar();
     ElaMessageBar::success(ElaMessageBarType::Top, "已永久删除", nullptr, 2000, this);
-}
-
-void MainWindow::onSetReminder() {
-    if (currentNoteId_.isEmpty()) {
-        ElaMessageBar::warning(ElaMessageBarType::Top, "提示", "请先选中一条便签", 2000, this);
-        return;
-    }
-    auto n = ctx_.notes->get(currentNoteId_);
-    if (!n) return;
-    n->remindAt = QDateTime::currentDateTime().addSecs(300);
-    ctx_.notes->upsert(*n);
-    ElaMessageBar::success(ElaMessageBarType::Top, "已提醒",
-        "将在 " + n->remindAt.toString("HH:mm") + " 提醒", 2000, this);
 }
 
 void MainWindow::onOpenSticky() {

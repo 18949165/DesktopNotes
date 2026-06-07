@@ -10,7 +10,6 @@
 #include "core/settings.h"
 
 namespace stickynotes::app {
-class ReminderService;
 struct AppContext {
     std::unique_ptr<platform::IFileSystem> fs;
     std::unique_ptr<platform::IClock> clock;
@@ -19,7 +18,6 @@ struct AppContext {
     std::unique_ptr<platform::ITrayIcon> tray;
     std::unique_ptr<core::INoteStore> notes;
     std::unique_ptr<core::Settings> settings;
-    std::unique_ptr<ReminderService> reminders;
 
     AppContext();
     ~AppContext();

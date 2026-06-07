@@ -1,5 +1,4 @@
 #include "app/app_context.h"
-#include "app/reminder_service.h"
 #include "platform/filesystem_qt.h"
 #include "platform/system_clock.h"
 #include "platform/win/notifier_win.h"
@@ -26,7 +25,6 @@ AppContext AppContext::production(const QString& dataDir) {
         core::Settings::load(dataDir + "/settings.json", *c.fs));
     c.settings->dataDir = dataDir;
     c.notes = std::make_unique<core::FileNoteStore>(dataDir, *c.fs);
-    c.reminders = std::make_unique<ReminderService>(*c.notes, *c.clock, *c.notifier);
     return c;
 }
 }
